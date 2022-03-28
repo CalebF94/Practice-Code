@@ -17,3 +17,16 @@ FROM
     employee e1 INNER JOIN employee man
     ON e1.managerid = man.id
 WHERE e1.salary > man.salary
+
+############################################################
+## 182: Duplicate Emails                                  ##
+## Write an SQL query to report all the duplicate emails. ##
+############################################################
+SELECT 
+    email
+FROM 
+    Person
+GROUP BY 
+    email
+HAVING 
+    count(email)>1
