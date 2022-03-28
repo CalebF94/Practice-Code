@@ -1,1 +1,19 @@
-test
+######################################################################################################################
+## 175: Write an SQL query to report the first name, last name, city, and state of each person in the Person table. ## 
+##  If the address of a personId is not present in the Address table, report null instead.                          ##
+######################################################################################################################
+SELECT P.firstname, P.lastname, A.city, A.state
+FROM 
+    person P LEFT JOIN address A
+    ON P.personid = A.personid
+
+
+#####################################################
+## 181: Employees Earning More than their managers ##
+#####################################################
+SELECT 
+    e1.name Employee
+FROM 
+    employee e1 INNER JOIN employee man
+    ON e1.managerid = man.id
+WHERE e1.salary > man.salary
