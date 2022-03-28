@@ -30,3 +30,17 @@ GROUP BY
     email
 HAVING 
     count(email)>1
+
+##########################################################################
+## 183: Customers Who Never Order                                       ##
+## Write an SQL query to report all customers who never order anything. ##
+##########################################################################
+SELECT 
+    C.name Customers
+FROM
+    Customers C LEFT JOIN Orders O
+    ON C.id = O.customerid
+GROUP BY 
+    C.id
+HAVING
+    count(O.id) = 0
