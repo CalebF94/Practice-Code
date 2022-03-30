@@ -1,0 +1,23 @@
+##############################################################################################
+## 177: Nth Highest Salary                                                                  ##
+## Write an SQL query to report the nth highest salary from the Employee table. If there is ##
+## no nth highest salary, the query should report null.                                     ##
+##############################################################################################
+CREATE FUNCTION getNthHighestSalary(N INT) RETURNS INT
+BEGIN
+
+    # Making a variable. notice it's outside the return statement 
+    DECLARE var_off_set INT DEFAULT (N - 1);
+    
+  RETURN (
+      # Write your MySQL query statement below.
+      SELECT(
+        # using a sub-table to handle null values
+        SELECT DISTINCT salary
+        FROM employee
+        ORDER BY salary DESC
+        Limit var_off_set, 1
+      ) getNthHighestSalary
+      
+  );
+END
