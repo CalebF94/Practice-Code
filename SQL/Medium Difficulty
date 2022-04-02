@@ -57,3 +57,20 @@ WHERE
     num = next_num AND
     num = next_next_num
     
+#####################################################################################
+## 184: Department Highest Salary                                                  ##
+## Write an SQL query to find employees who have the highest salary in each of the ## 
+## departments.                                                                    ##
+#####################################################################################
+SELECT 
+    dept.name Department,
+    emp.name Employee,
+    emp.salary Salary
+FROM
+    employee emp INNER JOIN department dept
+    ON emp.departmentid = dept.id
+WHERE 
+    (dept.id, emp.salary) IN (SELECT departmentID, MAX(salary) Salary #subquery returning the maximum salary for each dept
+                              FROM employee
+                              GROUP BY departmentID)
+    
