@@ -36,3 +36,24 @@ SELECT
     score,
     DENSE_RANK() OVER(ORDER BY score DESC) as `rank` # Not sure why, but I had to put rank in backward quotes
 FROM scores
+
+
+############################################################################################
+## 180: Consecutive Numbers                                                               ##
+## Write an SQL query to find all numbers that appear at least three times consecutively. ##
+############################################################################################
+WITH new_log AS (
+    SELECT 
+        id,
+        num,
+        LEAD(num, 1) OVER(ORDER BY id) next_num, #Window function to find the following nums
+        LEAD(num, 2) OVER(ORDER BY id) next_next_num
+    FROM 
+        logs
+) 
+SELECT DISTINCT(num) as ConsecutiveNums
+FROM new_log
+WHERE
+    num = next_num AND
+    num = next_next_num
+    
