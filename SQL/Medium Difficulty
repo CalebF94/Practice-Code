@@ -74,3 +74,18 @@ WHERE
                               FROM employee
                               GROUP BY departmentID)
     
+#########################################################################
+## 608: Tree Node                                                      ##
+## Each node in the tree can be one of three types:                    ##
+##        "Leaf": if the node is a leaf node.                          ##
+##        "Root": if the node is the root of the tree.                 ##
+##        "Inner": If the node is neither a leaf node nor a root node. ##
+#########################################################################
+SELECT  id, 
+        (CASE 
+            WHEN p_id IS NULL THEN "Root"
+            WHEN id in (SELECT DISTINCT p_id FROM tree) THEN "Inner"
+            ELSE "Leaf" END
+        ) type
+from tree
+ORDER BY id 
