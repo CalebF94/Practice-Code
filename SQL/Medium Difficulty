@@ -89,3 +89,22 @@ SELECT  id,
         ) type
 from tree
 ORDER BY id 
+
+
+#################################################################################################################
+## 626: Exchange Seats                                                                                         ##
+## Write an SQL query to swap the seat id of every two consecutive students. If the number of students is odd, ## 
+## the id of the last student is not swapped.                                                                  ##
+#################################################################################################################
+Return the result table ordered by id in ascending order.
+SELECT 
+    CASE 
+        WHEN MOD(id, 2)=1 AND id = (Select MAX(id) FROM seat) THEN id
+        WHEN MOD(id, 2)=0 THEN (id-1)
+        ELSE (id+1) 
+    END id,
+    student
+FROM seat
+ORDER BY id
+
+        
