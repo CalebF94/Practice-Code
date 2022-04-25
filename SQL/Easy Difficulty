@@ -113,3 +113,11 @@ LIMIT 1
 SELECT player_id, min(event_date) first_login
 FROM activity
 GROUP BY player_id
+
+#######################################
+## 596: Classes More than 5 students ##
+#######################################
+SELECT class
+FROM courses
+GROUP BY class
+HAVING COUNT(DISTINCT student)>=5
