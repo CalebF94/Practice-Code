@@ -12,26 +12,41 @@
 # parsing in Python 3. I talked a little bit about it in this post.
 
 # with the name list file
-with open("21 read file nameslist.txt", "r") as open_file:
-    all_text = open_file.read()
+# with open("22 read file nameslist.txt", "r") as open_file:
+#     all_text = open_file.read()
+#
+# all_text = all_text.split("\n")
+#
+# for name in set(all_text):
+#     counter = all_text.count(name)
+#     print(f"{name} appears {counter} times")
+#
+#
+# # using dictionary
+# name_dict = {}
+# with open("22 read file nameslist.txt", "r") as open_file:
+#     line = open_file.readline()
+#     while line:
+#         line.strip()
+#         if line in name_dict:
+#             name_dict[line] += 1
+#         else:
+#             name_dict[line] = 1
+#         line = open_file.readline()
+#
+# print(name_dict)
 
-all_text = all_text.split("\n")
 
-for name in set(all_text):
-    counter = all_text.count(name)
-    print(f"{name} appears {counter} times")
-
-
-# using dictionary
-name_dict = {}
-with open("21 read file nameslist.txt", "r") as open_file:
-    line = open_file.readline()
+# Extra challenge
+my_dict = {}
+with open("22 read file extra.txt", "r") as extra_file:
+    line = extra_file.readline()
     while line:
-        line.strip()
-        if line in name_dict:
-            name_dict[line] += 1
+        category = line.split(sep="/")[2]
+        if category in my_dict:
+            my_dict[category] += 1
         else:
-            name_dict[line] = 1
-        line = open_file.readline()
+            my_dict[category] = 1
+        line = extra_file.readline()
 
-print(name_dict)
+print(my_dict)
