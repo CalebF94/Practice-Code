@@ -1,4 +1,6 @@
-# The next logical step is to deal with handling user input. When a player (say player 1, who is X) wants to place an X on the screen, they can’t just click on a terminal. So we are going to approximate this clicking simply by asking the user for a coordinate of where they want to place their piece.
+# The next logical step is to deal with handling user input. When a player (say player 1, who is X) wants to place an
+# X on the screen, they can’t just click on a terminal. So we are going to approximate this clicking simply by asking
+# the user for a coordinate of where they want to place their piece.
 #
 # As a reminder, our tic tac toe game is really a list of lists. The game starts out with an empty game board like this:
 #
@@ -40,9 +42,25 @@ def print_game(game):
         print(game[row])
 
 
-def get_player_move(game, player_num):
+def get_player_move(game, player_number):
     print_game(game)
-    player_move = input("What is your move")
+    player_symbol = "X" if player_number == 1 else "O"
+    legal_move = False
+
+    while not legal_move:
+        move = input(f"Player {player_number} where would you like to play (r,c)? ")
+        move = move.strip().split(sep=",")
+        row = int(move[0])
+        col = int(move[1])
+
+        print(f"{row} {col}")
+        if (row in [1, 2, 3]) and (col in [1, 2, 3]) and (game[row-1][col-1] == 0):
+            legal_move = True
+            game[int(move[0])-1][int(move[1])-1] = player_symbol
+        else:
+            print("Not a legal move. Select another move")
 
 
 get_player_move(game, 1)
+get_player_move(game, 2)
+print_game(game)
