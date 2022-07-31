@@ -66,17 +66,11 @@ def game_winner(board):
 		elif vert_check["win"] == "Yes":
 			return vert_check
 		else:
-			return {"win": False, "player": 0}
-
-
-def print_game(game):
-	for row in range(0, 3):
-		print(game[row])
+			return {"win": "No", "player": 0}
 
 
 def get_player_move(game, player_number):
 	draw_game_board(game)
-	player_symbol = "X" if player_number == 1 else "O"
 	legal_move = False
 
 	while not legal_move:
@@ -85,7 +79,6 @@ def get_player_move(game, player_number):
 		row = int(move[0])
 		col = int(move[1])
 
-		print(f"{row} {col}")
 		if (row in [1, 2, 3]) and (col in [1, 2, 3]) and (game[row - 1][col - 1] == 0):
 			legal_move = True
 			game[int(move[0]) - 1][int(move[1]) - 1] = player_number
@@ -93,38 +86,47 @@ def get_player_move(game, player_number):
 			print("Not a legal move. Select another move")
 
 
-def play_tic_tac_toe():
-	playing = True
-	keep_playing = "y"
-	player1_wins = 0
-	player2_wins = 0
+def tic_tac_toe_game():
+	has_winner = False
 	game = [
 		[0, 0, 0],
 		[0, 0, 0],
 		[0, 0, 0]]
 
-	while playing:
-
+	while not has_winner:
 		for player_number in [1, 2]:
-			print(game)
 			get_player_move(game, player_number)
-			if game_winner(game)["win"] == "Yes":
-				print_game(game)
-				print(f"Player {player_number} Wins!")
-				keep_playing = input("Would you like to play again (Y/N)?").lower()
-			elif game_winner(game)["win"] == "draw":
-				print(f"Player {player_number} Wins!")
-				keep_playing = input("Would you like to play again (Y/N)?").lower()
+			result = game_winner(game)
+			if result["win"] in ["Yes", "draw"]:
+				has_winner = True
+				return result
 
-			if keep_playing == "n":
-				break
+
+def play_tic_tac_toe():
+	print("HELLO, WELCOME TO TIC-TAC-TOE\n")
+	cont_playing = True
+	player1_wins = 0
+	player2_wins = 0
+	number_of_draws = 0
+
+	while cont_playing:
+		print(f'Playing game number {player1_wins+player2_wins+1}')
+		game_result = tic_tac_toe_game()
+		if game_result['win'] == "Yes":
+			print(f'Player {game_result["player"]} won the game')
+			if game_result['player'] == 1:
+				player1_wins += 1
 			else:
-				game = [
-				[0, 0, 0],
-				[0, 0, 0],
-				[0, 0, 0]]
+				player2_wins += 1
+		else:
+			print("Game was a draw")
+			number_of_draws += 1
+
+		if input("Would you like to play again? (Y/N)").lower() == "n":
+			cont_playing = False
+			print(f'Player 1 won {player1_wins} games')
+			print(f'Player 2 won {player2_wins} games')
+			print(f'{number_of_draws} games ended in a draw')
 
 
 play_tic_tac_toe()
-
-
