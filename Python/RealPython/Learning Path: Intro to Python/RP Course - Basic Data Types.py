@@ -110,3 +110,43 @@ if l:
     print(f'l is True')
 else:
     print(f'l is false')
+
+
+'''
+Video 9: COmposite data types
+data types that are made up of other data types
+1) Lists
+2) Tuples
+3) Set: Can only contain unique elements
+4) Dictonary (dict): essentially a lookup table
+'''
+# defined with square brackets. mutable can be changed
+l = [1, 2, 3]
+print(l)
+l[1] = 6
+print(l)
+
+# Tuple
+t = (1, 2, 3, 4)
+print(t)
+#tuples are immutable once created the below line throws an error
+# t[1] = 6
+
+# sets. Created using set function
+ls = [1,1,2,2,3,3,4,4,5]
+set_list = set(ls)
+print(f'set(ls): {set(ls)}')
+
+# Dicts: Key and Value pairings
+my_dict = dict()
+my_dict['name'] = "Caleb"
+my_dict['age'] = 28
+print(my_dict)
+
+# values in a dict
+print(f'my_dict["age"] {my_dict["age"]}')
+
+#get method is good incase you access a value that doesn't exist
+print(my_dict.get('age'))
+print(my_dict.get('phone', "That key doesn't exist"))
+
