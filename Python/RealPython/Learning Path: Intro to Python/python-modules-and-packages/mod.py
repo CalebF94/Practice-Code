@@ -8,3 +8,6 @@ def printy(arg):
 
 class Classy:
     pass
+
+
+print(f'a = {a}')

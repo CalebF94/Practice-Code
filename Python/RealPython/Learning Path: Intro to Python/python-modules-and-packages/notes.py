@@ -125,17 +125,130 @@ What form can the import statement take
 # import pandas as pd
 
 #6
-def importer():
-    from mod import printy
-    printy("Hello Everyone")
-
-
-importer()
+# def importer():
+#     from mod import printy
+#     printy("Hello Everyone")
+#
+#
+# importer()
 
 
 # it's safer to import modules inside a try statement
-try:
-    #non existent module
-    import foo
-except ImportError:
-    print('module not found')
+# try:
+#     #non existent module
+#     import foo
+# except ImportError:
+#     print('module not found')
+
+#########################
+# 5) The dir() function #
+#########################
+"""
+- The dir() function returns a list of defined names in a namespace
+- Without arguments, it produces an alphabetically sorted list of names in the 
+    current local symbol table
+    
+"""
+# print(dir())
+#
+# spam = [1, 2, 3, 4]
+# print(dir())
+#
+# import mod
+# print(dir())
+
+"""
+- When given the name of a module as an argument, dir() lists the names defined
+    in the module
+"""
+# import mod
+# print(dir())
+#
+# print(dir(mod))
+#
+
+#####################################
+# 6) Executing a Module as a Script #
+#####################################
+"""
+- you can run a module as a script. It might output anything, but it is essentially
+    a python script 
+- To run a script that is within the same directory type:  mod.py
+
+- I modified the mod.py script include some print statements. Now if we import 
+    the module we get output printed on the screen
+    
+- What if you don't want a module to generate output when imported?
+    - When a .py file is imported the dunder variable __name__ is set to the 
+        name of the module
+    - When a .py file is run as a standalone script, __name__ is set to the 
+        string __main__
+        
+    - A new module called fact.py was created with an if statement for the 
+        __name__ variable
+"""
+import fact
+
+#########################
+# 7) Reloading a Module #
+#########################
+"""
+A module is only loaded once per session
+    - This works fine for function and class definitions 
+    - But modules can contain executable statements as well
+        - Usually for initialization
+        - These statements will only be executed the first time a module is imported
+"""
+# import importlib
+# # you can use the a function called reload() from the importlib module
+# import mod
+# importlib.reload(mod)
+
+######################
+# 8) Python Packages #
+######################
+"""
+Python packages are useful when there are many modules to import
+- Packages allow for a hirarchical structuring of the module namespace using
+    dot notation
+- Created a new directory inside the project that contains two
+    modules
+"""
+# import pkg.mod1, pkg.mod2
+# pkg.mod1.load_data()
+# x = pkg.mod2.Location()
+
+#############################
+# 9) Package Initialization #
+#############################
+"""
+The __init__.py file
+- If a file named __init__.py is present in the package directory, it is invoked
+    when the package or a module in the package is imported
+- In our example it would be place at the same location as mod1 and mod2
+    - We included  a print statement and a global variable
+"""
+# import pkg
+# print(pkg.alist)
+
+"""
+the global variable can be accessed in mod1 or mod2 if we import pkg inside those
+modules. Note that importing a single module will run __init__.py
+
+The __init__.py file can also be used to automatically import all the other modules
+    simply add an import statement for the other modules
+"""
+# import pkg
+# pkg.mod1.load_data()
+# pkg.mod2.clean_data()
+
+##################################
+# 10) Importing * From a Package #
+##################################
+"""
+Created 3 more modules inside the pkg directory
+"""
+
+
+
+
