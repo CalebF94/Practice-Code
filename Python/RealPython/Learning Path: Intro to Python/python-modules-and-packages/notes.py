@@ -222,8 +222,8 @@ Python packages are useful when there are many modules to import
 # 9) Package Initialization #
 #############################
 """
-The __init__.py file
-- If a file named __init__.py is present in the package directory, it is invoked
+The _init__.py file
+- If a file named _init__.py is present in the package directory, it is invoked
     when the package or a module in the package is imported
 - In our example it would be place at the same location as mod1 and mod2
     - We included  a print statement and a global variable
@@ -233,9 +233,9 @@ The __init__.py file
 
 """
 the global variable can be accessed in mod1 or mod2 if we import pkg inside those
-modules. Note that importing a single module will run __init__.py
+modules. Note that importing a single module will run _init__.py
 
-The __init__.py file can also be used to automatically import all the other modules
+The _init__.py file can also be used to automatically import all the other modules
     simply add an import statement for the other modules
 """
 # import pkg
@@ -246,9 +246,40 @@ The __init__.py file can also be used to automatically import all the other modu
 # 10) Importing * From a Package #
 ##################################
 """
-Created 3 more modules inside the pkg directory
+Created 3 more modules inside the pkg directory. I also renamed the __init__.py
+file to _init__.py b/c tutorial wanted to delete it, but I wanted to keep it
 """
 
+# print(dir())
+# from pkg.mod3 import *
+# print(dir()) # Message and merge_data are now included
 
+"""
+If we only did from pkg import * nothing would be added to dir().
 
+Now we need to recreate the __init__.py with a list named __all__
+- this __all__ list controls what is imported when import * is specified
+    - for a package, when __all__ is not defined, import * does not import anything
+    - for a module, when __all__ is not defined, import * imports everything
+        except names starting with an underscore
+"""
+# from pkg import *
+# print(dir()) #now all of the modules got imported
+
+###################
+# 11) Subpackages #
+###################
+"""
+Packages can contain nested subpackages to arbitrary depth
+    - pkg >> sub_pkg1
+    - pkg >> sub_pkg2
+    
+You can create a package within a package
+
+Relative subpackages
+    - .. evaluates to the parent package
+        - allows to call a sub package inside another sub package
+            that is contained within the same parent package
+    - ..sub_pkg
+"""
 
