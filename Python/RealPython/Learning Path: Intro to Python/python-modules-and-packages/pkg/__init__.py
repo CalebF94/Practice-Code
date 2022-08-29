@@ -1,6 +1,9 @@
-# This is used for package initialization code
-print(f'Invoking __init__.py for {__name__}')
-import pkg.mod1, pkg.mod2
+# This file will default when importing with * wll import all
+# modules
 
-# also has a global variable
-alist = ['spam', 'bacon', 'eggs']
+__all__ = [
+    'mod1',
+    'mod2',
+    'mod3',
+    'mod4'
+]

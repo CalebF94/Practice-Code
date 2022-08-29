@@ -1,6 +1,7 @@
-def merge_date():
-    print("merging data with merge_data()")
+def send_mail():
+    print('Sending_mail function run')
 
 
-class Message():
+class Winner():
     pass
+
