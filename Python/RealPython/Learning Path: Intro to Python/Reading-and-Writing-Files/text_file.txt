@@ -1,0 +1,4 @@
+line1
+line2
+line3
+A new ending for my text file!
