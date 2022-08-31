@@ -1,0 +1,22 @@
+# Supercharge Your Classes With Python `super()`
+
+Python supports inheritance using `super()`
+
+In this course you'll learn how to:
+    + Compose a class
+    + Use `super()` to access parent methods
+    + Understand single and multiple inheritance
+
+Video 1: Object Inheritance in Python
+###############################################################################
+    1) Object
+        - An object is a way of grouping data and methods on the data together
+        - Objects often map to things  in the real world
+            - Person: name, address, add_to_course()
+            - Balance Sheet: assets[], liabilities[]
+        - A class defines an object
+
+        A class is created using the keyword class followed by the class name. By
+        convention the class name is capitalized
+            class Square:
+                pass
