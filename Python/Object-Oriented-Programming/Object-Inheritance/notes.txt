@@ -20,3 +20,69 @@ Video 1: Object Inheritance in Python
         convention the class name is capitalized
             class Square:
                 pass
+
+    2) __init__(self, parameters)
+        - the __init__ function is the constructor for the defined class
+        - providing additional parameters allows you to create other attributes
+            using the self.attribute = parameter notation
+
+        def __init__(self, length):
+            self.length = length
+
+        - You can make classes with multiple parameters:
+            - See the rectangle class
+
+    3) Notice that Squares are special instances of rectangles. Both classes are
+        very similar. This can cause an issue because if we notice there is an error
+        in one of the classes we have to manually change the other.
+
+        This can be avoided using Inheritance. We can create the Square class to
+        be based on the Rectangle Class using the super() method
+
+        Our class definition for square will now be. We are inheriting the methods
+        but we are modifying the __init__ function to only contain 1 parameter
+            class Square(Rectangle):
+                def __init__(self, length):
+                    super().__init__(length, length)
+
+        super() allows us to access the parents methods (in this case __init__)
+        and we modify it to use length for both the length and width. This will
+        automatically change references of width to length
+
+
+Video 2: super() and the Inheritance Hierarchy
+###############################################################################
+Adding the Cube class to shapes.py
+
+when the method surface_area is created, face_area is calculated using self.area
+The Cube class doesn't have an area() method, so Python then checks the parent (
+Square). The area() method still isn't found, so it checks Square's parent,
+rectangle, which is where area() is found.
+
+We can also use the super() method to access the area method. The process used in
+defining surface_Area and volume both work
+
+
+Calling an Object's Method
+    - When you call a method on an object, Python looks for a method with that
+      name on the current object
+        - If it finds it, it calls it
+        - If it doesn't, it tries to find a method with that name in the parent
+          object
+        - It keeps going up the inheritance chain until it finds the method or
+          if it never finds it an AttributeError will be thrown
+
+
+Forms of super()
+    - super() called within a class method gives you access to the parent object
+    - super() can also be called with parameters indicating the class and
+      object to access
+        - super(class, object)
+        - This form doesn't even have to be inside the object method
+    - Inside a class method "super()" is a shortcut for "super(my_class, self)"
+
+Accessing a Parent's methods
+    - if we call super(Cube, cube).what_am_i() we're calling the parent of Cube's
+      what_am_i() method on the object cube
+    - if we call super(Square, cube).what_am_i() we're calling the parent of
+      Square's what_am_i() method on the object cube
