@@ -65,3 +65,26 @@ class Cube(Square):
     def volume(self):
         face_area = super().area()
         return face_area * self.length
+
+
+# Classes for multiple inheritance
+class Triangle:
+    def __init__(self, base, height):
+        self.base = base
+        self.height = height
+
+    def area(self):
+        return self.base * self.height * 0.5
+
+    def what_am_i(self):
+        return 'Triangle'
+
+
+# the RightPyramid is going to inherit from triangle and squares
+class RightPyramid(Triangle, Square):
+    def __init__(self, base, slant_height):
+        self.base = base
+        self.slant_height = slant_height
+
+    def what_am_i(self):
+        return 'Right Pyramid'

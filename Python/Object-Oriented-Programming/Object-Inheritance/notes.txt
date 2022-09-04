@@ -86,3 +86,22 @@ Accessing a Parent's methods
       what_am_i() method on the object cube
     - if we call super(Square, cube).what_am_i() we're calling the parent of
       Square's what_am_i() method on the object cube
+
+
+Video 3: Multiple Inheritance in Python
+###############################################################################
+Process of inheriting from multiple classes. For this video I made new classes
+Triangle and RightTriangle. Right Triangle inherits from both square and Triangle
+
+When we call the super() for the what_am_i() method it returns from the Triangle
+class because that one is defined first in the Class definition of RightTriangle
+
+MRO: Method Resolution Order - order in which Python orders inheritance. In this case
+mro() method goes RightPyramid -> Triangle -> Square -> Rectangle -> object.
+    -The MRO dictates how to look up a named method when it is called. Inheriting methods
+    could have conflicts in naming (what_am_i() method)
+    -the first class named is looked at first
+    - you can specify square.area if you want to reference a parent method
+
+MIXIN:
+    - An independent class that that doesn't affect any thing that inherits from it
