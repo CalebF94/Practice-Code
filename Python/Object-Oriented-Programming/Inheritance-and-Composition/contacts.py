@@ -1,6 +1,6 @@
 from representations import AsDictionaryMixin
 
-class AddressBook:
+class _AddressBook:
     def __init__(self):
         # Internal employee address database
         self._employee_addresses = {
@@ -33,3 +33,10 @@ class Address(AsDictionaryMixin):
         lines.append(f'{self.city}, {self.state} {self.zipcode}')
         return '\n'.join(lines)
 
+
+# Video 19: Public interface for user interaction with module
+_address_book = _AddressBook()
+
+
+def get_employee_address(employee_id):
+    return _address_book.get_employee_address(employee_id)

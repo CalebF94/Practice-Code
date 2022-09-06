@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class PayrollSystem:
+class _PayrollSystem:
     def __init__(self):
         # Internal database for employee policy
         self._employee_policies = {
@@ -28,6 +28,32 @@ class PayrollSystem:
                 print(employee.address)
             print(f'- Check Amount: {employee.calculate_payroll()}')
             print('')
+
+
+class LTDPolicy:
+    # base policy will be the policy b4 going on LTD
+    def __init__(self):
+        self._base_policy = None
+
+    # accepts hours to work and
+    def track_work(self, hours):
+        self._check_base_policy()
+        return self._base_policy.track_work(hours)
+
+    # Check base policy and if ok return 60% of base policy
+    def calculate_payroll(self):
+        self._check_base_policy()
+        base_salary = self._base_policy.calculate_payroll()
+        return base_salary * 0.6
+
+    # used to change base policy
+    def apply_to_policy(self, base_policy):
+        self._base_policy = base_policy
+
+    # checks if base policy is None
+    def _check_base_policy(self):
+        if not self._base_policy:
+            raise RuntimeError('Base policy missing')
 
 
 class PayrollPolicy: # Base class for all other policies
@@ -69,6 +95,17 @@ class CommissionPolicy(SalaryPolicy):
         fixed = super().calculate_payroll()
         return fixed + self.commission()
 
+
+# Video 19: Public interface for user interaction
+_payroll_system = _PayrollSystem()
+
+
+def get_policy(employee_id):
+    return _payroll_system.get_policy(employee_id)
+
+
+def calculate_payroll(employees):
+    return _payroll_system.calculate_payroll(employees)
 
 #
 # class Employee(ABC):
