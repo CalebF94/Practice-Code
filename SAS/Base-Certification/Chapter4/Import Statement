@@ -1,0 +1,39 @@
+/*
+File is used to demonstrate importing external files
+
+/*
+From Chapter 4 of the Base Certification study guide
+*/
+
+LIBNAME cert '/home/u45038867/cert';
+
+/*Creating FILEREFS for external files  */
+FILENAME test_csv "/home/u45038867/cert/ExternalFiles/test.csv";
+FILENAME test_xls "/home/u45038867/cert/ExternalFiles/test_xlsx.xlsx";
+
+/*Importing a CSV
+
+datafile: is the SAS datafile name specified in the FILENAME statement
+dbms: saying this is a csv file
+out: SAS data set location and name
+replace indicates that we want to overwrite work.test_csv if it exists*/
+PROC IMPORT datafile=test_csv dbms=csv out=work.test_csv replace;
+RUN;
+
+PROC CONTENTS data=work.test_csv;
+RUN;
+
+
+/*
+Importing a specific page from an excel file
+
+sheet: specifies which tab from the file to read in
+getnames: indicates use the first row as header  
+*/
+PROC IMPORT DATAFILE=test_xls dbms=xlsx out=work.test_xls replace;
+	sheet=sheet1;
+	getnames=yes;
+RUN;
+
+PROC CONTENTS data=test_xls;
+RUN;
