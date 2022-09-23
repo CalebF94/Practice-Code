@@ -1,0 +1,42 @@
+/*
+Chapter 6: Creating Reports
+
+From the certified specialist prep book  
+*/
+
+LIBNAME cert '/home/u45038867/cert';
+
+/*The most basic report*/
+PROC PRINT data=cert.therapy;
+RUN;
+
+
+/*
+An example demonstrating the use of the noobs option
+and the var statement 
+*/
+PROC PRINT data=cert.admit noobs;*OBS column will not be shown;
+	var age height weight fee;*table will have 4 columns;
+RUN;
+
+
+/*
+An example illustrating the use of the ID and VAR statements together
+Notice how the IDnum gets printed twice b/c it appears in the ID
+statement and the VAR statement  
+*/
+PROC PRINT data=cert.reps;
+	ID IDnum LastName;
+	VAR IDnum Sex JobCode Salary;
+RUN;
+
+/*
+Example demonstating the usage of the WHERE Statement  
+
+Notice how the first where statement is ignored
+*/
+PROC PRINT data=cert.admit;
+	VAR age height weight fee;
+	WHERE fee > 130;
+	WHERE age > 30;
+RUN;
