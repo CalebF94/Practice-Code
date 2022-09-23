@@ -1,0 +1,223 @@
+/*
+File is used to demonstrate importing external files
+
+From Chapter 4 of the Base Certification study guide
+*/
+
+LIBNAME cert '/home/u45038867/cert';
+
+/*Creating FILEREFS for external files  */
+FILENAME test_csv "/home/u45038867/cert/ExternalFiles/test.csv";
+FILENAME test_xls "/home/u45038867/cert/ExternalFiles/test_xlsx.xlsx";
+
+/*Importing a CSV
+
+datafile: is the SAS datafile name specified in the FILENAME statement
+dbms: saying this is a csv file
+out: SAS data set location and name
+replace indicates that we want to overwrite work.test_csv if it exists*/
+PROC IMPORT datafile=test_csv dbms=csv out=work.test_csv replace;
+RUN;
+
+PROC CONTENTS data=work.test_csv;
+RUN;
+
+
+/*
+Importing a specific page from an excel file
+
+sheet: specifies which tab from the file to read in
+getnames: indicates use the first row as header  
+*/
+PROC IMPORT DATAFILE=test_xls dbms=xlsx out=work.test_xls replace;
+	sheet=sheet1;
+	getnames=yes;
+RUN;
+
+PROC CONTENTS data=test_xls;
+RUN;
+
+
+/*Importing a file with & as the delimiter  */
+proc import datafile='/home/u45038867/cert/delimiter.txt'  /*#1*/
+  dbms=dlm                                                    /*#2*/
+  out=mydata
+  replace;
+  delimiter='&';                                              /*#3*/
+  getnames=yes;                                               /*#4*/
+run;
+
+proc print data=mydata;
+run;
+
+
+/*
+You can specify characters using ascii characters.
+In the example below delimiter='09'x represents a tab  
+*/
+PROC IMPORT datafile='/home/u45038867/cert/class.txt'
+	dbms=tab 
+	out=class
+	replace;
+	delimiter="09"x;
+	
+RUN;
+
+PROC PRINT data=work.class;
+RUN;
+
+
+/*
+Using the options obs= statement to limit the number of
+rows that SAS reads in  
+*/
+options obs=7;
+PROC IMPORT datafile='/home/u45038867/cert/boot.csv'
+	dbms=csv 
+	out=shoes
+	replace;
+	getnames=no;
+RUN;
+
+PROC PRINT data=work.shoes;
+RUN;
+
+options obs=max; *to reset the number of obs that read in;
+
+/*
+Example of using the Imported dataset inside of
+a subsequent data step  
+*/
+PROC IMPORT datafile='/home/u45038867/cert/boot.csv'
+	dbms=csv 
+	out=shoes2
+	replace;
+	getnames=no;
+RUN;
+
+DATA work.boots; *The filtered dataset will be called boots;
+	set shoes2; *The set statement is using the reference to out in the IMPORT step;
+	where var1='South America' OR var1='Canada'; *Filtering rows with where statement;
+RUN;
+
+PROC PRINT data=boots;
+RUN;
+
+
+/*
+Example using filtering and storing
+
+Use the cert.admit data set to create a new SAS dataset (males) that
+only contains patients that are male and older than 50 (exclusive)  
+*/
+
+LIBNAME cert '/home/u45038867/cert';
+LIBNAME Men50 '/home/u45038867/cert/Men50'; *Created library in file system;
+
+DATA MEN50.males;
+	SET cert.admit;
+	where Age>50 AND Sex='M';
+RUN;
+
+PROC PRINT data=Men50.males;
+RUN;
+
+
+/*
+Example using the DROP option  
+*/
+
+*original data set. Contains 7 rows;
+PROC PRINT data=cert.cltrials;
+RUN;
+
+DATA cert.drug1h(drop=placebo); *placebo is referenced later, so we use drop here;
+	set cert.cltrials(drop=triglyc uric); * These variables are never used;
+	where placebo='YES';
+RUN;
+
+PROC PRINT data=cert.drug1h;
+RUN;
+
+/*
+Example for reading in an Excel workbook 
+
+Notice that we don't have to import the dataset 
+*/
+
+LIBNAME certxl XLSX '/home/u45038867/cert/exercise.xlsx';
+
+* you can subset the data as well;
+data work.stress;
+	set certxl.activitylevels;*activitylevels is the sheet name;
+	where ActLevel='HIGH';
+RUN;
+
+PROC PRINT data=stress;
+RUN;
+
+
+/*
+Examples of printing XLSX files
+
+Notice you don't necessarily need the DATA STEP
+*/
+
+LIBNAME certxl xlsx '/home/u45038867/cert/boots.xlsx';
+
+PROC PRINT data=certxl.boot;
+RUN;
+
+
+/*
+Example of writing an Excel file
+
+The LIBNAME statement declares what the new file will be called.
+DON'T FORGET TO SPECIFY THE XLSX ENGINE
+
+In the DATA step we reference the libref and follow it with what 
+we want the new sheet name to be called. In this case HighStress
+*/
+
+LIBNAME excelout xlsx '/home/u45038867/cert/newExcel.xlsx';
+LIBNAME cert '/home/u45038867/cert';
+
+DATA excelout.HighStress;*HighStress will be the sheet name;
+	set cert.stress;
+RUN;
+
+* Adding an additional sheet;
+DATA excelout.Loan;
+	set cert.loan;
+RUN;
+
+
+/*
+OUTPUT statement example
+
+This example uses the OUTPUT statement to conditionally 
+write output to the dataset referenced in the DATA step
+*/
+data work.usa5;
+	set cert.usa(keep=manager wagerate);*out dataset will only have two columns;
+	if _n_=5 then output;*only keeping the 5th record;
+RUN;
+
+PROC PRINT data=work.usa5;
+RUN;
+
+
+/*
+OUTPUT statement with two data sets
+*/
+
+data empty full;
+	set cert.usa;
+	output full;
+RUN;
+
+data evens odds;
+	set cert.usa;
+	if mod(_n_, 2)=0 then output evens;
+	else output odds;
+RUN;
