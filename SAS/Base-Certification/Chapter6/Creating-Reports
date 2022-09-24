@@ -158,3 +158,89 @@ PROC PRINT data=work.activity;
 RUN;
 
 
+
+/*
+Below is a basic example of using the TITLE and FOOTNOTE statements
+
+Notice how multiple Titles/footnotes are used and that a line is skipped
+if that N is not used  
+*/
+TITLE "Heart Rate for Patients with:";
+*TITLE2 is not used so there is a blank line;
+TITLE3 "Increased Stress Tolerance Levels:";
+FOOTNOTE "Data from Treadmill Test";
+FOOTNOTE2 "1st Quarter Admissions";
+PROC PRINT data=cert.stress;
+	var resthr maxhr rechr;
+	where tolerance="I";
+RUN;
+
+* This example demononstrates how we can change a TITLE but keep others. 
+TITLE, FOOTNOTE, and FOOTNOTE are global so they won't change from the 
+previous step;
+TITLE3 "Decreased Stress Tolerance Levels:";
+PROC PRINT data=cert.stress;
+	var resthr maxhr rechr;
+	where tolerance="I";
+RUN;
+
+* However if we redine FOOTNOTE1 we lose FOOTNOTE2. Redefining higher ranked 
+TITLES/FOOTNOTES affects the TITLES/FOOTNOTES of lower rank;
+FOOTNOTE1 "Data from March";
+PROC PRINT data=cert.stress;
+	var resthr maxhr rechr;
+	where tolerance="I";
+RUN;
+
+
+* To clear all footnotes or headers run a null TITLE or FOOTNOTE statement;
+TITLE1;
+PROC PRINT data=cert.stress;
+	var resthr maxhr rechr;
+	where tolerance="I";
+RUN;
+
+*Clearing all Titles and footnotes;
+TITLE; FOOTNOTE;
+
+
+/*
+Below is an example of using the LABEL Statement and Option in PROC PRINT  
+
+The LABEL option is needed in the definition to successfully print the new labels
+*/
+
+PROC PRINT data=cert.therapy label;
+	label walkjogrun="Walk/Jog/Run";
+RUN;
+
+*When the label option isn't included in the PROC statement the labels aren't applied;
+PROC PRINT data=cert.therapy;
+	label walkjogrun="Walk/Jog/Run";
+RUN;
+
+
+/*
+You can also apply multiple labels in a single LABEL statement  
+*/
+PROC PRINT data=cert.admit label;
+	var actlevel height weight;
+	label actlevel="Activity Level"
+		  height="Height in Inches"
+		  weight="Weight in Pounds";
+RUN;
+
+/*
+This example creates a SAS dataset and creates a permanent label for it.
+
+We can then use those labels in a subsequent PRINT procedure  
+*/
+DATA cert.paris;
+	set cert.laguardia;
+	where dest="PAR" and (boarded=155 or boarded=146);
+	label date="Departure Date";
+RUN;
+
+PROC PRINT data=cert.paris label;
+	var date dest boarded; *Notice we still refer to the variable name not the label;
+RUN;
