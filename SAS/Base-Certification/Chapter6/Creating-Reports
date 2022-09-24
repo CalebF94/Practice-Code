@@ -40,3 +40,121 @@ PROC PRINT data=cert.admit;
 	WHERE fee > 130;
 	WHERE age > 30;
 RUN;
+
+
+/*
+Using OBS and FIRSTOBS statements
+
+First a basic example using the global OBS statement
+*/
+
+OPTIONS OBS=10; *Only the first 10 obs are printed. This option affects subsequent steps;
+PROC PRINT data=cert.heart;
+RUN;
+
+*resetting OBS and specifying we only want to print the first 10 observations;
+OPTIONS OBS=max FIRSTOBS=10;
+PROC PRINT data=cert.heart;
+RUN;
+
+
+*You can also set OBS and FIRSTOBS to print an intermediate range of observations
+Notice you don't get 15 obs you get observations 5 through 15;
+OPTIONS FIRSTOBS=5 OBS=15;
+PROC PRINT data=cert.heart;
+RUN;
+
+/*
+Specifying OBS and FIRSTOBS for a single data set  
+
+Notice the global options haven't been changed. 
+We'll specify the options in parenthesis directly after the dataset name
+*/
+PROC PRINT data=cert.heart (FIRSTOBS=3 OBS=8);
+RUN;
+
+OPTIONS OBS=max FIRSTOBS=min;
+
+/*
+Sorting SAS datasets
+
+The following example sorts a data set by weight and age.
+PROC SORT doesn't generate output so we have to use PRINT procedure
+after to show results
+*/
+PROC SORT data=cert.admit out=work.wgtadmit;
+	BY DESCENDING weight age;
+RUN;
+
+PROC PRINT data=work.wgtadmit;
+	VAR weight age height fee;
+	WHERE age>30;
+RUN;
+
+
+/*
+Below is an example of the SUM statement inside a PRINT procedure  
+*/
+PROC PRINT data=cert.insure;
+	var name policy; *Notice that balancedue still prints even though not specified here;
+	where pctinsured < 100;
+	sum balancedue; *finding the total balance due for all observations;
+RUN;
+
+
+* here is an example of using the SUM and BY statements to creat subtotals for each
+group of the BY variable;
+PROC SORT data=cert.admit out=work.activity;
+	BY actlevel;
+RUN;
+
+PROC PRINT data=work.activity;
+	var age height weight fee;
+	where age>30;
+	sum fee;
+	by actlevel;*Different tables will be made for each group;
+RUN;
+
+*If the by group isn't sorted each contiguous group is treated as its own group;
+PROC PRINT data=work.activity;
+	var age height weight fee;
+	where age>30;
+	sum fee;
+	by age NOTSORTED; *This generates lots of small groups and some of the groups repeat;
+RUN;
+
+*The following example uses the sum, by, and id state to clean up and reduce the 
+duplication of some information for the BY variable;
+PROC SORT data=cert.admit out=work.activity;
+	by actlevel;
+RUN;
+
+PROC PRINT data=work.activity;
+	var age height weight fee;
+	where age>30;
+	sum fee;
+	by actlevel;
+	id actlevel;*Notice that the BY and ID variables are the same;
+RUN;
+
+
+/*
+The following example shows the use of the pageby statement 
+
+The BY and PAGEBY variables are the same. You will get an error if the PAGEBY
+variable isn't in the BY variable list
+*/
+PROC SORT data=cert.admit out=work.activity;
+	by actlevel;
+RUN;
+
+PROC PRINT data=work.activity;
+	var age height weight fee;
+	where age>30;
+	sum fee;
+	by actlevel;
+	id actlevel;
+	pageby actlevel;*note that the BY variable and PAGEBY variables are the same;
+RUN;
+
+
