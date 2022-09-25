@@ -1,0 +1,77 @@
+/*
+Using PROC FREQ to find invalid records
+ */
+LIBNAME cert '/home/u45038867/cert/';
+
+PROC FREQ data=cert.pats;
+	tables Gender Age;* A frequency table for each variable will be created;
+RUN;
+
+/*
+Using PROC MEANS to find values that are invalid
+*/
+
+PROC MEANS data=cert.pats;
+	var Age;
+RUN;
+
+
+/*
+The example below uses a condition assignment statment to correct the 
+observations where gender=G  
+*/
+data work.pats_clean;
+	set cert.pats;
+	gender=upcase(Gender);
+	if Gender="G" THEN PUT 'INVALID DATA: Observation Number ' _N_=;
+	if Gender="G" THEN Gender='M';
+	
+RUN;
+
+*Printing out the cleaned data;
+PROC PRINT data=work.pats_clean;
+run;
+
+
+/*
+Another solution is to delete observations with the invalid data
+
+This is done using the DELETE statement  
+*/
+DATA work.clean_data;
+	set cert.pats;
+	gender=upcase(Gender);
+	if Gender="G" THEN Gender="M";
+	if Age>110 THEN delete; *Note the observation is only deleted from the clean_data set;
+RUN;
+
+*This data set only has 13 observations;
+PROC PRINT data=work.clean_data;
+RUN;
+
+
+/*
+Some useful techniques in debugging data steps include uint the OBS statement
+in the SET statement and using a PUTLOG statement to print the PDV in the SAS LOG  
+*/
+
+DATA work.limitobs;
+	set cert.invent (obs=10);* The created dataset will only have 10 observations
+	total=instock+backord;
+RUN;
+
+PROC PRINT data=work.limitobs;
+RUN;
+
+
+*You can put the PDV in the log using the _ALL_ variable;
+DATA work.update;
+	set cert.invent;
+	putlog 'PDV After SET Statement'; *Note to make reading log easier;
+	putlog _all_; *Printing the PDV to the log;
+	Total=instock+backord;
+	SalePrice=(CostPerUnit*0.65) + CostPerUnit;
+	format CostPerUnit SalePrice dollar6.2;
+RUN;
+
+
