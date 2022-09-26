@@ -1,0 +1,55 @@
+/*
+Chapter 8:   By Group processing
+
+*/
+
+LIBNAME cert '/home/u45038867/cert/';
+
+/*
+Before BY group processing can occur the observations in a dataset
+need to sorted by the variable(s) that the BY group processing is to 
+based on
+
+In this example we sort based on Manager  
+*/
+
+PROC SORT data=cert.usa out=work.usa;
+	by manager;
+RUN;
+
+PROC PRINT data=work.usa;
+RUN;
+
+
+/*
+The following program computes the annual payroll by department. Notice that the variable
+name Dept has been appended to FIRST. and LAST.
+*/
+
+PROC SORT data=cert.usa out=work.temp;
+	by dept;
+RUN;
+
+DATA work.budget(keep=dept payroll);
+	set work.temp;
+	by dept;
+	if wagecat='S' then Yearly=wagerate*12;
+		else if wagecat='H' then Yearly=wagerate*2000;
+	if first.dept then Payroll=0;
+	payroll+yearly;
+	if last.dept;
+RUN;
+
+*We can now find the annaul payroll by department;
+PROC PRINT data=work.budget;
+	sum payroll;
+	format payroll dollar12.2;
+RUN;
+
+
+
+
+
+
+
+
