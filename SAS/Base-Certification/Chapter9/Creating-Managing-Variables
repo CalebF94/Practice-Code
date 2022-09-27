@@ -1,0 +1,70 @@
+/*
+Chapter 9: Creating and Managing Variables  
+*/
+
+
+LIBNAME cert '/home/u45038867/cert/';
+/*
+Assigning  Variables examples
+*/
+
+*Creating new variables;
+data work.stresstest;
+	set cert.tests;
+	TotalTime=(timemin*60); *creating a varible called TotalTime;
+RUN;
+
+PROC PRINT data=work.stresstest;
+RUN;
+
+
+
+*Re-evaluationg variables: reassigning a variable using the current value of that variable;
+data work.stresstest;
+	set cert.tests;
+	resthr = resthr + (resthr *.10);*increasing rest hr by 10%;
+RUN;
+
+PROC PRINT data=work.stresstest;
+RUN;
+
+/* Date constant assignment example
+
+'ddmmmmyy'D or 'ddmmmyyyy'D 
+*/
+data work.stresstest;
+	set cert.tests;
+	TotalTime=(timemin*60)+timesec;
+	TestDate= '01jan2015'd;
+	TestDate2= '01aug15'D;
+RUN;
+
+PROC PRINT data=work.stresstest;
+RUN;
+
+
+* Accumulating Totals;
+data work.stresstest;
+	set cert.tests;
+	TotalTime = timemin*60+timesec;
+	SumSec+totaltime; *SumSec value begins at 0 and increases by totaltime each iteration;
+RUN;
+
+PROC PRINT data=work.stresstest;
+RUN;
+
+*Setting an initial value and using the RETAIN statement;
+data work.stresstest;
+	*Used to track how the value changes;
+	putlog 'SumSec at begginning of iteration' SumSec=;
+	set cert.tests;
+	TotalTime=(timemin*60)+timesec;
+	retain SumSec 5400;
+	sumsec+totaltime;
+	putlog 'SumSec at end of itereation' TotalTime = SumSec=;
+RUN;
+
+PROC PRINT data=work.stresstest;
+RUN;
+
+
