@@ -1,0 +1,39 @@
+/*
+Chapter 9 Macro variables  
+*/
+
+LIBNAME cert '/home/u45038867/cert/';
+
+%let Cyl_Count=5;
+
+PROC PRINT data=sashelp.cars;
+	where Cylinders=&Cyl_Count;
+	VAR Type Make Model Cylinders MSRP;
+RUN;
+
+PROC FREQ data=sashelp.cars;
+	where Cylinders=&Cyl_Count;
+	tables Type;
+RUN;
+
+
+/*
+Character Macro variable  
+*/
+
+%let CarType=Wagon;*Notice there are no quotes;
+
+PROC PRINT data=sashelp.cars;
+	where Type="&CarType";*Now double quotes are needed;
+	VAR Type Make Model MSRP;
+RUN;
+
+PROC MEANS data=sashelp.cars;
+	where Type="&CarType";
+	var MSRP MPG_Highway;
+RUN;
+
+PROC FREQ data=sashelp.cars;
+	where Type="&CarType";
+	tables Origin Make;
+RUN;
