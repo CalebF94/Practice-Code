@@ -68,3 +68,185 @@ PROC PRINT data=work.stresstest;
 RUN;
 
 
+/*
+Using the LENGTH statement to avoid truncation of data  
+*/
+
+data stress;
+	set cert.stress;
+	TotalTime=(timemin*60)+timesec;
+	retain SumSec 5400;
+	sumsec+totaltime;
+	
+	*Normal is the longest string;
+	length TestLength $ 6;
+	if totaltime>800 then testlength='Long';
+	else if 750<=totaltime<=800 then testlength='Normal';
+	else if totaltime<750 then TestLength='Short';
+RUN;
+
+PROC PRINT data=work.stress;
+RUN;
+
+
+/*
+Subsetting IF statement  
+
+Only keeping observations based on the Tolerance variable
+*/
+
+DATA work.stresstest;
+	set cert.stress;
+	if Tolerance='D';
+		putlog 'Note Observation Number: ' _n_=;*Check log to see only certain obs get to this point;
+		TotalTime=(timemin*60)+timesec;*Only runs if Tolerance is D;
+RUN;
+
+PROC PRINT data=work.stresstest;
+RUN;
+
+
+/*
+Using the IF-THEN statement to categorize numeric variables  
+*/
+
+DATA work.stresstest;
+	set cert.stress;
+	LENGTH TestLength $ 6;
+	TotalTime=(Timemin*60)+timesec;
+	RETAIN SumSec 5400;
+	IF TotalTime >= 800 THEN TestLength='Long';
+	IF 750 <= TotalTime < 800 THEN TestLength='Normal';
+	IF TotalTime <750 THEN TestLength='Short';
+RUN;
+
+PROC PRINT data=work.stress;
+RUN;
+
+/*
+Using an IF-THEN/ELSE statement
+
+THis is the same as the previous example except more efficient  
+*/
+
+DATA work.stresstest;
+	set cert.stress;
+	LENGTH TestLength $ 6;
+	TotalTime=(Timemin*60)+timesec;
+	RETAIN SumSEc 5400;
+	
+	IF TotalTime>800 THEN TestLength='Long';
+		ELSE IF 750<TotalTime<=800 THEN TestLength='Normal';
+		ELSE IF TotalTime<=750 THEN TestLength='Short';
+RUN;
+
+PROC PRINT data=work.stresstest;
+RUN;
+
+
+/*
+Example of IF-THEN and DELETE statements  
+
+Conditionally deleting observations if the resthr variable is less than 70.
+Notice there are only 16 observations now. The previous example had 21 observations
+*/
+DATA work.stresstest;
+	set cert.stress;
+	
+	*Deleting observations where the resthr is low;
+	IF resthr<70 THEN DELETE;
+	
+	LENGTH TestLength $ 6;
+	TotalTime=(Timemin*60)+timesec;
+	RETAIN SumSEc 5400;
+	
+	IF TotalTime>800 THEN TestLength='Long';
+		ELSE IF 750<TotalTime<=800 THEN TestLength='Normal';
+		ELSE IF TotalTime<=750 THEN TestLength='Short';
+RUN;
+
+PROC PRINT data=work.stresstest;
+RUN;
+
+
+/*
+Using the DROP= and KEEP= options in the DATA statement  
+*/
+
+DATA work.stresstest(DROP=timemin timesec);*these variables aren't needed in the final dataset;
+	set cert.stress;
+	
+	*Deleting observations where the resthr is low;
+	IF resthr<70 THEN DELETE;
+	
+	LENGTH TestLength $ 6;
+	TotalTime=(Timemin*60)+timesec;
+	RETAIN SumSec 5400;
+	Sumsec+TotalTime;
+	
+	IF TotalTime>800 THEN TestLength='Long';
+		ELSE IF 750<TotalTime<=800 THEN TestLength='Normal';
+		ELSE IF TotalTime<=750 THEN TestLength='Short';
+RUN;
+
+PROC PRINT data=work.stresstest;
+RUN;
+
+
+/*
+A Simple PROC Transpose example  
+*/
+PROC TRANSPOSE data=cert.class out=score_transposed;
+RUN;
+
+PROC PRINT data=score_transposed;
+	TITLE 'Scores for the Year';
+RUN;
+
+/*
+Using the VAR statement to transpose only specific variable  
+*/
+PROC TRANSPOSE data=cert.cltrials out=transtrials1;
+	VAR Cholesterol Triglyc Uric;
+RUN;
+
+PROC PRINT data=transtrials1;
+RUN;
+
+
+/*
+USing the ID statement and Prefix option to name transposed variables   
+*/
+
+PROC transpose data=cert.cltrials out=transtrials2;
+	VAR cholesterol triglyc uric;
+	id name testdate;
+RUN;
+
+PROC PRINT data = transtrials2;
+RUN;
+
+/*
+BY statement and PROC TRANSPOSE  
+*/
+
+PROC SORT data=cert.cltrials out = transtrials3;
+	BY TestDate;
+RUN;
+PROC transpose data=work.transtrials3 out=transtrials3;
+	VAR cholesterol triglyc uric;
+	id name;
+	by testdate;
+RUN;
+
+
+PROC PRINT data=cert.cltrials;
+	TItle 'original data';
+RUN;
+
+PROC PRINT data=transtrials3;
+	TITLE 'Transposed Data';
+RUN;
+
+
+
