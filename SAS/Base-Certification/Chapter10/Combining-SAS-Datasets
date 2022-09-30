@@ -1,0 +1,89 @@
+/*
+Chapter 10: Combining SAS Data Sets  
+*/
+
+LIBNAME cert "/home/u45038867/cert/";
+
+
+/*
+One-to-one dataset combination  
+
+cert.patients contains 11 observations
+cert.measure contains 9 observations. its the same patients as 
+cert.patients except those overt 60 are removed
+*/
+DATA work.one2one;
+	set cert.patients;*Contains 11 observations;
+	if age<60;* removes 2 observations from patients;
+	putlog 'check id: ' id=;
+	set cert.measure;*contains 9 observations;
+run;
+
+PROC PRINT data=work.one2one;
+RUN;
+
+/*
+Concatenating Data sets example  
+*/
+data work.concat;
+	*Notice that you can still use data set options;
+	set cert.therapy2012 (drop=AerClass firstobs=4) cert.therapy2013; *Simply listing datasets to concatenate;
+RUN;
+
+PROC PRINT data=work.concat;
+RUN;
+
+
+/*
+Basic Match-Merging Example  
+*/
+
+*First the data sets need to be sorted based on the BY variable;
+
+* Data contains patient information such as patient id, age, sex, and Date;
+PROC SORT data=cert.demog;
+	by id;
+RUN;
+
+* Data contains patient visit details such as patient id, visit number, 
+	SysBP, DiasBP, Weight, and Date of visit;
+PROC SORT data=cert.visit;
+	by id;
+RUN;
+
+*Merging the data sets. Notice both data sets have a date column. This value is populated with
+the value of the second data set (cert.visit);
+data work.merged;
+	merge cert.demog cert.visit;
+	by id;
+RUN;
+
+PROC PRINT data=work.merged;
+RUN;
+
+
+/*
+Merge in Descending Order
+
+Pretty similar to the previous example
+Added DESCENDING statements to all BY statements  
+*/
+PROC SORT data=cert.demog;
+	BY DESCENDING id;
+RUN;
+
+PROC SORT data=cert.visit;
+	BY DESCENDING id;
+RUN;
+
+DATA work.merged;
+	MERGE cert.demog cert.visit;
+	BY DESCENDING ID;
+RUN;
+
+PROC PRINT data=work.merged;
+RUN;
+
+
+
+
