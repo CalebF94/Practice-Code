@@ -85,5 +85,58 @@ PROC PRINT data=work.merged;
 RUN;
 
 
+/*
+Another example of Match merging  
+*/
+data work.claims;
+	merge cert.clients
+		  cert.amounts;
+	BY name;
+RUN;
+
+PROC PRINT data=work.claims;
+RUN;
 
 
+/*
+Renaming variables using the RENAME= option  
+
+These datasets both contain a data column. One is a visit date and the
+other is a birthdate. Thus we want to avoid overwriting the initial date
+value with the value from the second data set
+*/
+PROC SORT data=cert.patdat;
+	BY id;
+RUN;
+
+PROC SORT data=cert.visit;
+	BY id;
+RUN;
+
+DATA work.merged;
+	*notice the double set of parenthesis;
+	MERGE cert.patdat (rename=(date=BirthDate)) 
+		cert.visit (rename=(date=VisitDate));
+		BY ID;
+RUN;
+
+PROC PRINT data=work.merged;
+RUN;
+
+/*
+Using the IN= statement to identify which observations are contributing to 
+the current observations  
+*/
+
+DATA work.merged;
+	* Creating the in variables using IN=statements;
+	MERGE cert.patdat (in=inpat rename=(date=BirthDate))
+		  cert.visit (in=invisit rename=(date=VisitDate));
+	BY id;
+	putlog 'Values of IN variables: ' inpat= invisit=;
+	if inpat=1 and invisit=1;* only writing the observation if both data sets contributed to the observations;
+RUN;
+
+*Notice that this data set has 1 fewer observation and there are no blank values;
+PROC PRINT data=work.merged;
+RUN;
