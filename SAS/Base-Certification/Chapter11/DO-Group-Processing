@@ -1,0 +1,146 @@
+/*
+Chapter 11: Do loop Processing  
+*/
+
+LIBNAME cert '/home/u45038867/cert/';
+/*
+This example uses a conditional DO loop if totaltime>800  
+*/
+DATA work.stresstest;
+	set cert.tests;
+	TotalTime=(timemin*60)+timesec;
+	RETAIN SumSec 5400;
+	SumSec+TotalTime;
+	LENGTH TestLength $6 Message $20;
+	if totaltime>800 then	
+		DO;*the following only runs if the condition is true;
+			TestLength="Long";
+			message='Run Blood Panel';
+		END;
+		else if 750<=totaltime<=800 then TestLength='Normal';
+		else if totaltime<750 then TestLength='Short';
+RUN;
+	
+PROC PRINT data=work.stresstest;
+RUN;
+
+/*
+Iterative DO loop processing example	 
+*/
+DATA work.earnings (drop=month);*Month is the indexing variable;
+	set cert.master;
+	Earned = 0;
+	DO month=1 to 12;*looping across the index variable month 12 times;
+		earned+(amount+earned)*(rate/12);
+		putlog 'value of month: ' month= ' value of earned: ' earned=;
+	END;
+	Balance=Amount+Earned;
+RUN;
+
+PROC PRINT data=work.earnings;
+RUN;
+
+
+/*
+Explicitly writting an observation inside a DO loop 
+
+If the explicit OUTPUT wasn't used there would only be 1 observation.
+With the OUTPUT statement, there are 20 observations 
+*/
+DATA work.earn;
+	Value=2000;
+	DO Year=1 to 20;
+		Interest=value*.075;
+		value+interest;
+		OUTPUT; *This is where an observation gets written;
+	END;
+RUN;
+
+PROC PRINT data=work.earn;
+RUN;
+
+
+/*
+Nested DO Loop example  
+
+This example calculates the monthly interest earned in addition to 
+adding an addition amount of capital every month
+*/
+DATA work.earn;
+	DO year=1 to 20;
+		Capital+2000; *adding 2000 to account at the start of each month;
+			DO month=1 to 12;
+				Interest=capital*(.075/12); *calcuating monthly interest earned;
+				capital+interest;
+			END;
+	END;
+RUN;
+
+PROC PRINT data=work.earn;
+RUN;
+
+/*
+Iteratively processing observations from a data set  
+
+In the example below, we use a variable that exists in the data set to
+loop over a number years to calculate the total investment
+*/
+
+DATA work.compare(drop=i);
+	SET work.cdrates;
+	Investment=5000;
+	DO i=1 to years;
+		investment+rate*investment;
+	END;
+RUN;
+
+PROC PRINT data=work.compare;
+RUN;
+
+
+/*
+DO UNTIL statement example  
+*/
+DATA work.invest;
+	DO UNTIL(Capital>=50000);
+		capital+2000;
+		capital+capital*.10;
+		Year+1; *Variable that tracks the number of years/iterations
+	END;
+RUN;
+
+PROC PRINT data=work.invest;
+RUN;
+
+
+/*
+The example below uses a DO UNTIL statement that is also capped by 
+the number of iterations  
+*/
+
+*In this example the DO loop ends b/c year reaches 11;
+DATA work.invest;
+	DO year=1 to 10 UNTIL (Capital>=50000);
+		capital+2000;
+		capital+capital*.10;
+	END;
+RUN;
+
+PROC PRINT data=work.invest;
+RUN;
+
+*This example we increase the capital added each year, so the DO loop 
+terminates do to the capital getting too high before year reaches 10;
+DATA work.invest;
+	DO year=1 to 10 until (capital>=50000);
+		capital+4000;
+		capital+capital*.10;
+	END;
+RUN;
+
+PROC PRINT data=work.invest;
+RUN;
+
+
+
+
