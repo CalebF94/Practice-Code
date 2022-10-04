@@ -1,0 +1,15 @@
+/*
+Chapter 12: SAS Formats and Informats
+*/
+LIBNAME cert '/home/u45038867/cert/';
+
+/*
+Basic example to display a value as currency
+*/
+PROC PRINT data=cert.admit;
+	VAR actlevel fee;
+	WHERE actlevel='HIGH';
+	*Formatting the fee variable to be currency with a length 
+	4 and no decimal numbers;
+	format fee dollar4.;
+RUN;
