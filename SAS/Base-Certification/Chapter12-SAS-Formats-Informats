@@ -13,3 +13,58 @@ PROC PRINT data=cert.admit;
 	4 and no decimal numbers;
 	format fee dollar4.;
 RUN;
+
+
+/*
+To permanently store formats specify a libname and then reference that
+libname in the LIBRARY option
+*/
+
+/* LIBNAME formtlib '/home/u45038867/Formats/lib'; */
+
+/*
+Use the FORMAT procedure to create formats for a selection of variables  
+*/
+
+PROC FORMAT;
+	VALUE gender
+		1 = 'Male'
+		2 = 'Female';
+	
+	*Used on a range of values;
+	VALUE agegroup
+		13 -< 20 = 'Teen'
+		20 -< 65 = 'Adult'
+		65 - HIGH = 'Senior';
+	
+	* Notice this format is for character variables, so we have $ and the
+	values are enclosed in quotes;
+	VALUE $col
+		'W' = 'Moon White'
+		'B' = 'Sky Blue'
+		'Y' = 'Sunburst Yellow'
+		'G' = 'Rain Cloud Gray';
+RUN;
+
+
+/*
+To use the formats created above you need to reassign the libref Formtlib again  
+*/
+
+LIBNAME formtlib '/home/u45038867/Formats/lib';
+
+/*
+Assigning a custom format to a variable  
+
+This is done using a FORMAT statement similar to using built in formats
+Notice we can assign custom and default formats in a single statement and that
+the custom formats need to end with period
+*/
+
+DATA work.carsurvey;
+	set cert.cars;
+	format Sex gender. Age agegroup. Color $col. Income Dollar8.;
+RUN;
+
+PROC PRINT data=work.carsurvey;
+RUN;
