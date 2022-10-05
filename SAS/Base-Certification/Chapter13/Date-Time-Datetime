@@ -1,0 +1,88 @@
+/*
+Chapter 13: SAS Date, Time, and Datetime Values  
+*/
+
+LIBNAME cert '/home/u45038867/cert/';
+
+/*
+Date and Time Value example  
+*/
+DATA work.test;
+	set cert.temp;
+	TotDay=enddate-startdate;*These are treated just numbers;
+RUN;
+
+PROC PRINT data=work.test;
+RUN;
+
+/*
+This example of importing a csv with dates in the MMDDYY10. format  
+*/
+PROC IMPORT datafile='/home/u45038867/cert/new_hires.csv'
+	out=work.newhires
+	dbms=csv
+	replace;
+	getnames=yes;
+RUN;
+
+PROC PRINT data=work.newhires;
+RUN;
+
+PROC CONTENTS data=work.newhires;
+RUN;
+
+
+/*
+Example using Dates and Times in Calculations
+*/
+
+DATA work.aprhospitalbills;
+	set cert.aprbills;
+	*Creating variables based on dates;
+	Days=dateout-datein;*The book had +1 on the end;
+	RoomCharge=days*roomrate;
+	Total=roomcharge+equipcost;
+RUN;
+
+PROC PRINT data=work.aprhospitalbills;
+
+	*Associating the Datein and Dateout variables with a date format;
+	format Datein DateOut mmddyy8.;
+RUN;
+
+/*
+WEEKDATEw. example  
+*/
+PROC PRINT data=work.aprhospitalbills;
+	format datein dateout weekdate17.;
+RUN;
+
+/*
+WORDDATEw. Format example  
+*/
+
+PROC PRINT data=work.aprhospitalbills;
+	format datein dateout worddate12.;
+RUN;
+
+
+/*
+You can permanently assign a format to a variable inside of a DATA step  
+*/
+DATA work.aprhospitalbills;
+	set cert.aprbills;
+	Days=dateout-datein;
+	RoomCharge=days*roomrate;
+	Total=roomcharge+equipcost;
+	format datein dateout worddate12.;
+RUN;
+
+PROC PRINT data=work.aprhospitalbills;
+RUN;
+
+
+
+
+
+
+
