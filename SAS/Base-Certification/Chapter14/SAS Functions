@@ -1,0 +1,17 @@
+/*
+Chapter 14: SAS functions  
+*/
+
+LIBNAME cert '/home/u45038867/cert/';
+
+/*
+The following code automatically converts payrate to numeric
+so SAS can perform the calculation for Salary  
+*/
+PROC CONTENTS data=cert.temp;
+RUN;
+
+DATA work.newtemp;
+	set cert.temp;
+	Salary=payrate*hours;
+RUN;
