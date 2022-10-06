@@ -1,0 +1,20 @@
+/*
+SAS Date Functions  
+*/
+
+LIBNAME cert '/home/u45038867/cert/';
+
+/*
+Using the YEAR() and MONTH() functions
+
+Using the above functions to subset data to a particular month  
+*/
+
+DATA work.nov17;
+	set cert.temp;
+	if year(startdate)=2017 and month(startdate)=11;
+RUN;
+
+PROC PRINT data=work.nov17;
+	format startdate enddate date9.;
+RUN;
