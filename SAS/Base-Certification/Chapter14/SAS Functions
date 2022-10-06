@@ -15,3 +15,64 @@ DATA work.newtemp;
 	set cert.temp;
 	Salary=payrate*hours;
 RUN;
+
+/*
+Below is an example of conversion not occuring inside a WHERE expression
+
+The code will be commented out because it throws an error  
+*/
+
+
+/*  */
+/* DATA work.convtest; */
+/* 	Number=4; */
+/* 	Charcter='4'; */
+/* RUN; */
+/*  */
+/* PROC PRINT data=work.convtest; */
+/* 	where character=4; *Throws error b/c Character is not a numeric variable; */
+/* RUN; */
+
+
+/*
+Below is an example of using the input function to convert to a numeric variable
+
+Payrate is character value such as '10' or '2'
+*/
+DATA work.newtemp;
+	set cert.temp;
+	Salary=INPUT(payrate, 2.);*Converting character values to numeric;
+RUN;
+
+PROC PRINT data=work.newtemp;
+RUN;
+
+
+
+/*
+Below is an example of implicitly converting a numeric value to character value
+
+USing the || operator to concatenate two values
+*/
+DATA work.newtemp;
+	set cert.temp;
+	Assignment=site||'/'||dept;*Implicitly concatenating the numeric variable dept to character;
+RUN;
+
+PROC PRINT data=work.newtemp;
+RUN;
+
+/*
+Same example as above except we explicitly convert site  
+*/
+DATA work.newtemp;
+	set cert.temp;
+	Assignment=PUT(site, 2.)||'/'||dept;*Explicitly concatenating the numeric variable dept to character;
+RUN;
+
+PROC PRINT data=work.newtemp;
+RUN;
+
+
+
+
