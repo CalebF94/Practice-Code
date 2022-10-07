@@ -18,3 +18,119 @@ RUN;
 PROC PRINT data=work.nov17;
 	format startdate enddate date9.;
 RUN;
+
+
+/*
+Subsetting the cert.temp dataset to only show employees that started in 2016  
+*/
+DATA work.temp16;
+	set cert.temp;
+	if YEAR(startdate)=2016;
+RUN;
+
+PROC PRINT data=work.temp16;
+	format startdate enddate birthdate date9.;
+RUN;
+
+
+/*
+Using the WEEKDAY function to only show observations from
+the weekend from the dataset cert.sch  
+*/
+DATA work.schwkend;
+	set cert.sch;
+	if WEEKDAY(airdate) IN (1, 7);*1=Sunday, 2=Saturday;
+RUN;
+
+PROC PRINT data=work.schwkend;
+	format airdate date9.;
+RUN;
+
+
+/*  
+use the MDY function on the cert.dates dataset to put make a date
+variable using the year, month, and day variables
+*/
+
+DATA work.datestemp;
+	set cert.dates;
+	date=MDY(month, day, year);
+RUN;
+
+PROC PRINT data=work.datestemp;
+	format date mmddyy10.;
+RUN;
+
+
+/*  
+Using MDY() to find a date from the cert.review2018 dataset
+*/
+DATA work.review2018;
+	set cert.review2018;
+	ReviewDate=MDY(12, day, 2018);
+RUN;
+
+PROC PRINT data=work.review2018;
+	format ReviewDate mmddyy10.;
+RUN;
+
+
+/*  
+Adding a variable with today's date to the cert.dates dataset
+*/
+
+DATA work.tempdate;
+	set cert.dates;
+	ReviewDate=TODAY();
+	format ReviewDate date9.;
+RUN;
+
+PROC PRINT data=work.tempdate;
+RUN;
+
+
+/*  
+Use the cert.mechanics dataset and INTCK function to identify 
+mechanics whose 20th year of employment occurs in the current month (july 2018)
+*/
+DATA work.anniversary;
+	set cert.mechanics (keep=id lastname firstname hired);
+	Years=INTCK('year', hired, '01jul2018'd);
+	if Years=20 and month(hired)=month('01jul2018'd);
+RUN;
+
+PROC PRINT data=work.anniversary;
+TITLE 'Employees with 20 Year Anniversaries in July 2018';
+RUN;
+
+/*  
+YRDIF examples
+*/
+
+*30/360 basis;
+data _null_;
+	x=yrdif('16feb2016'd, '16jun2018'd, '30/360');
+	put x;
+RUN;
+
+
+*ACT/ACT basis;
+data _null_;
+	x=yrdif('16feb2016'd, '16jun2018'd, 'ACT/ACT');
+	put x;
+RUN;
+
+
+*ACT/360 basis;
+data _null_;
+	x=yrdif('16feb2016'd, '16jun2018'd, 'ACT/360');
+	put x;
+RUN;
+
+
+
+*ACT/365 basis;
+data _null_;
+	x=yrdif('16feb2016'd, '16jun2018'd, 'ACT/365');
+	put x;
+RUN;
