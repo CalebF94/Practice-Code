@@ -1,0 +1,30 @@
+/*
+Chapter 14 - Modifying Numeric Values with Functions  
+
+SAS provides additional functions to create or modify numeric values. 
+These include arithmetic, financial and probability function
+*/
+
+LIBNAME cert '/home/u45038867/cert';
+
+/*
+Below are examples of the CEIL and FLOOR functions  
+*/
+
+DATA _null_;
+	var1=2.1;
+	var2=-2.1;
+	a=ceil(var1);*returns 3;
+	b=ceil(var2);*returns -2;
+	put 'a=' a;
+	put 'b=' b;
+RUN;
+
+DATA _null_;
+	c=ceil(1+1.e-11);
+	d=ceil(-1+1e-11);
+	e=ceil(1+1.e-13);
+	put 'c=' c;*2;
+	put 'd=' d;*0;
+	put 'e=' e;*1:
+RUN;
