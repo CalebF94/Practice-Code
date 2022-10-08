@@ -1,0 +1,143 @@
+/*
+Chapter 14 - Modifying character values with functions  
+*/
+
+LIBNAME cert '/home/u45038867/cert/';
+
+/*
+The SCAN function can be used to split variables at a delimiter 
+*/
+
+DATA work.newnames(drop=name); *name is needed after new variables are created;
+	set cert.staff;
+	LastName=scan(name, 1);
+	FirstName=scan(name, 2);
+RUN;
+
+PROC PRINT data=work.newnames;
+RUN;
+
+/*
+Make sure to use a LENGTH statement before creating new variables using
+the SCAN function or else the first argument will set the length
+*/
+DATA work.newnames(drop=name);
+	set cert.staff;
+	length lastname firstname $12; *setting lengths for new character variables to 12;
+	LastName=SCAN(name, 1);
+	FirstName=SCAN(name, 2);
+	MiddleInitial=SCAN(name, 3);
+RUN;
+
+PROC PRINT data=work.newnames;
+RUN;
+
+
+/*
+Using the SUBSTR function to extract the first letter from a 
+Character string to create a new variable  
+*/
+DATA work.agencyemp(drop=middlename); *Don't need the full middle name any more;
+	set cert.agencyemp;
+	length MiddleInitial $1;
+	MiddleInitial=SUBSTR(middlename, 1,1);
+RUN;
+
+PROC PRINT data=work.agencyemp;
+RUN;
+
+
+/*
+Using the cert.temp dataset and SUBSTR we need to update the phone numbers
+that begin with 622 and make them begin with 433  
+*/
+
+DATA cert.temp2(drop=Exchange);
+	set cert.temp;
+	Exchange=SUBSTR(Phone, 1, 3);*Temp variable the contains the area code;
+	IF Exchange='622' THEN SUBSTR(Phone, 1, 3)='433'; *using SUBSTR to replace text;
+RUN;
+
+PROC PRINT data=cert.temp2;
+RUN;
+
+/*
+Examples of the LEFT and RIGHT Functions
+to align character values 
+*/
+DATA _null_;
+	a='DUE DATE';
+	b='   DUE DATE';
+	c=left(a);
+	d=left(b);
+	put c $8.;
+	put d $12.;* The leading blanks are moved to the end;
+RUN;
+
+
+DATA _null_;
+	a='DUE DATE';
+	b='DUE DATE   ';
+	c=RIGHT(a);
+	d=RIGHT(b);
+	put c $8.;
+	put d $12.; * The leading blanks are moved to the beginning;
+RUN;
+
+
+/*
+Using the TRIM function  
+*/
+DATA work.nametrim;
+	length name $ 20 First Middle Last $ 10;
+	Name= 'Jones, Mary Ann, Sue';
+	First=LEFT(SCAN(Name, 2, ','));* Extracting first name and removing blanks;
+	Middle=LEFT(SCAN(Name, 3, ','));* Extracting middle name and removing blanks;
+	Last=SCAN(name, 1, ',');* Extracting last name. Removing blanks not needed;
+	FullName=TRIM(First) || TRIM(Middle) || Last;
+	*drop Name;
+RUN;
+
+PROC PRINT data=work.nametrim;
+RUN;
+	
+	
+/*
+Using the CATX Function 
+
+Creating a new address variable that concatenates address
+city and zip separated by a comma with leading and trailing
+blank removed from the individual variables 
+*/
+
+DATA work.newaddress(drop=address city state zip);
+	set cert.temp;
+	NewAddress=CATX(', ', address, city, zip);
+RUN;
+
+PROC PRINT data=work.newaddress;
+RUN;
+
+/*
+Searching for Occurrence of a Phrase  
+*/
+DATA work.datapool;
+	set cert.temp;
+	*keeping observations if 'word processing' is found within job;
+	where index(job, 'word processing') > 0;
+RUN;
+
+PROC PRINT data=work.datapool;
+RUN;
+
+
+
+
+
+
+
+
+
+
+
+
