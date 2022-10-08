@@ -131,12 +131,68 @@ PROC PRINT data=work.datapool;
 RUN;
 
 
+/*
+FIND function example
+pretty similar to the previous example  
+*/
+DATA work.datapool;
+	set cert.temp;
+	where find(job, 'word processing')>0;
+RUN;
+
+PROC print data=work.datapool;
+RUN;
 
 
+/*
+Simple example of upcase  
+*/
+DATA work.upcasejob;
+	SET cert.temp;
+	Job=UPCASE(job);* Notice were changing the variable in place;
+RUN;
+
+PROC PRINT data=work.upcasejob;
+RUN;
 
 
+/*
+Simple example for LOWCASE  
+*/
+DATA work.lowcasecontact;
+	set cert.temp;
+	Contact=LOWCASE(contact);
+RUN;
+
+PROC PRINT data=work.lowcasecontact;
+RUN;
 
 
+/*
+Example of using the propcase Function  
+*/
+DATA work.propcasecontact;
+	set cert.temp;
+	Contact=propcase(contact);
+RUN;
+
+PROC PRINT data=work.propcasecontact;
+RUN;
+
+
+/*
+Using the TRANWRD function to update a name variable in place 
+
+The function is used twice to convert all strings to 'Ms.' 
+*/
+DATA work.after;
+	set cert.before;
+	name=tranwrd(name,'Miss', 'Ms.');
+	name=tranwrd(name, 'Mrs.', 'Ms.');
+RUN;
+
+PROC PRINT data=work.after;
+RUN;
 
 
 
