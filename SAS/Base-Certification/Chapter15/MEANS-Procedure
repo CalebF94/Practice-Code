@@ -39,10 +39,54 @@ PROC MEANS data=cert.survey mean stderr maxdec=2;
 RUN;
 
 
+/*
+Example of group processing using the CLASS Statement  
+*/
+
+* grouping the cert.heart dataset by survive and sex variables;
+PROC MEANS data=cert.heart maxdec=1;
+	VAR arterial heart cardiac urinary;
+	CLASS survive sex; *the order specified matches the output order;
+RUN;
+
+/*
+BY grouping in the MEANS procedure
+
+THis is the same as the previous example except to use the BY statement
+we have to sort the data and we get four tables of output rather than one  
+*/
+
+PROC SORT data=cert.heart OUT=work.heartsort;
+	BY survive sex;
+RUN;
+
+PROC MEANS data=work.heartsort;
+	VAR arterial heart cardiac urinary;
+	BY survive sex;
+RUN;
 
 
+/*
+Example: Creating Summarized data set using the OUTPUT statement  
+*/
 
+PROC MEANS data=cert.diabetes;
+	VAR age height weight; * notice the order of the variables;
+	class sex;
+	
+	* In the expressions below:
+		out=> specifying the output data set
+		mean=>writing the mean values to the 'Avg' variables
+		min=> writing the min values to 'Min' variables
+		notice the order of the variables match the order from the VAR statement;
+	OUTPUT out=work.diabetes_by_gender
+		mean=AvgAge AvgHeight AvgWeight
+		min=MinAge MinHeight MinWeight; *Notice there is one new variable per variable in the VAR statement
+RUN;
 
-
+*Printing the output from the MEANS procedure;
+PROC PRINT data=work.diabetes_by_gender noobs;
+	TITLE1 'Diabetes Results by Gender';
+RUN;
 
 
