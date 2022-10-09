@@ -1,0 +1,62 @@
+/*
+Chapter 15: The FREQ Procedure  
+*/
+
+LIBNAME cert '/home/u45038867/cert';
+
+/*
+Example: Default behaviour of PROC FREQ  
+
+Each variable will have its own table
+Each variable value will have its own row*/
+PROC FREQ data=cert.usa;
+RUN;
+
+/*
+Example: Creating  a one-way table for one variable using TABLES 
+*/
+PROC FREQ data=cert.diabetes;
+	TABLES sex;* only one table will be in the output;
+RUN;
+
+/*
+Listing multiple variables in the TABLE statement
+
+Notice that the order listed corresponds to the order in the report  
+*/
+PROC FREQ data=cert.loan;
+	TABLES rate months;
+RUN;
+
+* You can also specify a numbered range of variables in TABLES statement;
+PROC FREQ data=cert.survey;
+	TABLES item1-item3;
+RUN;
+
+
+/*
+Example: Creating two-way contingency table using the * syntax inside the TABLE statement  
+*/
+
+PROC FREQ data=cert.diabetes;
+	*sex appears in the rows, fastgluc appears in the columns;
+	TABLES sex*fastgluc;
+RUN;
+
+
+/*
+Example: Creating N-Way Tables  
+*/
+
+PROC format;
+	value Survive 0='Dead'
+				  1='Alive';
+RUN;
+
+PROC FREQ data=cert.leukemia;
+	*we get a separate table for the values of survived;
+	*in each survived table, AG is the rows and Whitecells is the columns;
+	tables Survived*AG*WhiteCells;
+	format Survived Survive.;*don't forget the .;
+RUN;
+
