@@ -1,0 +1,48 @@
+/*
+Chapter 15: Producing Descriptive Statistics  
+*/
+
+LIBNAME cert '/home/u45038867/cert';
+
+/* THE MEANS PROCEDURE  */
+
+
+/* Below is the most basic example of the MEANS procedure
+   Notice there isn't any print statement but output is generated
+*/
+
+PROC MEANS data=cert.survey;
+RUN;
+
+
+* Example: Specifying statistic keywords
+
+Displaying the mean and median for the numeric variables
+Notice that only median and range are shown;
+PROC MEANS data=cert.survey median range; 
+RUN;
+
+
+*Example: Limiting decimals with the MAXDEC= Option;
+PROC MEANS data=cert.survey MIN MAX MAXDEC=1;
+RUN;
+
+
+*Example: Specifying individual variables in the VAR statement;
+PROC MEANS data=cert.diabetes min max maxdec=0;
+	VAR age height weight;
+RUN;
+
+*Example: Specifying a numbered range of variables;
+PROC MEANS data=cert.survey mean stderr maxdec=2;
+	VAR item1-item5;
+RUN;
+
+
+
+
+
+
+
+
+
