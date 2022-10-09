@@ -55,7 +55,7 @@ that begin with 622 and make them begin with 433
 DATA cert.temp2(drop=Exchange);
 	set cert.temp;
 	Exchange=SUBSTR(Phone, 1, 3);*Temp variable the contains the area code;
-	IF Exchange='622' THEN SUBSTR(Phone, 1, 3)='433'; *using SUBSTR to replace text;
+	IF Exchange='622' THEN SUBSTR(Phone, 1, 3)='4333'; *using SUBSTR to replace text;
 RUN;
 
 PROC PRINT data=cert.temp2;
@@ -193,7 +193,3 @@ RUN;
 
 PROC PRINT data=work.after;
 RUN;
-
-
-
-
