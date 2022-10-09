@@ -26,5 +26,69 @@ DATA _null_;
 	e=ceil(1+1.e-13);
 	put 'c=' c;*2;
 	put 'd=' d;*0;
-	put 'e=' e;*1:
+	put 'e=' e;*1;
+RUN;
+
+DATA _null_;
+	f=ceil(223.456);
+	g=ceil(763);
+	h=ceil(-223.456);
+	put 'f=' f;*224;
+	put 'g=' g; *763;
+	put 'h=' h; *-22;
+RUN;
+
+
+* Floor function;
+DATA _null_;
+	var1=2.1;
+	var2=-2.1;
+	a=floor(var1);
+	b=floor(var2);
+	put 'a=' a;*2;
+	put 'b=' b;*-3;
+RUN;
+
+DATA _null_;
+	c=floor(1+1.e-11);
+	d=floor(-1+1e-11);
+	e=floor(1+1.e-13);
+	put 'c=' c;*1;
+	put 'd=' d;*-2;
+	put 'e=' e;*1;
+RUN;
+
+DATA _NULL_;
+	f=floor(223.456);
+	g=floor(763);
+	h=floor(-223.456);
+	put 'f=' f;*223;
+	put 'g=' g;*763;
+	put 'h=' h;*-224;
+RUN;
+
+/*
+Using the INT function to discard the decimal portion of a value
+ */
+DATA work.creditx(keep=Account Transaction transaction2);
+	set cert.credit;
+	Transaction2=int(transaction);
+RUN;
+
+PROC PRINT data=work.creditx;
+RUN;
+
+
+/*
+Using the ROUND function  
+*/
+DATA work.rounders;
+	set cert.rounders;
+	AccountBalance=round(AccountBalance, 1);
+	InvoicedAmount=round(InvoicedAmount, 0.1);
+	AmountRemaining=round(AmountRemaining, 0.02);
+	format AccountBalance InvoicedAmount PaymentReceived AmountRemaining dollar9.2;
+RUN;
+
+PROC PRINT data=work.rounders;
 RUN;
