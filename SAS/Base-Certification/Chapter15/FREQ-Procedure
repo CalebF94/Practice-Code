@@ -60,3 +60,48 @@ PROC FREQ data=cert.leukemia;
 	format Survived Survive.;*don't forget the .;
 RUN;
 
+
+/*
+Example: Using the LIST option in a table statement to display output
+in list form rather than having multiple tables for different variable values
+*/
+
+PROC FORMAT;
+	VALUE Survive 0='Dead'
+			1='Alive';
+RUN;
+
+PROC FREQ data=cert.leukemia;
+	TABLES Survived*AG*WhiteCells / list; *This will produce list output;
+	format Survived survive.;
+RUN;
+
+
+/*
+Example using the crosslist option in the TABLES statement  
+*/
+PROC FORMAT;
+	VALUE Survive 0='Dead'
+				  1='Alive';
+RUN;
+
+PROC FREQ data=cert.leukemia;
+	TABLES Survived*AG*WhiteCells / crosslist;
+	FORMAT Survived Survive.;
+RUN;
+
+
+/*
+Suppressing table information using TABLES statement options  
+*/
+
+PROC FORMAT;
+	VALUE Survive 0='Dead'
+				  1='Alive';
+RUN;
+
+PROC FREQ data=cert.leukemia;
+	*Now the frequency table will only have one stat per cell;
+	TABLES Survived*AG*WhiteCells / nofreq norow nocol;
+	format Survived survive.;
+RUN;
