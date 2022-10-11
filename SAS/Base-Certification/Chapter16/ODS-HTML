@@ -1,0 +1,49 @@
+/*
+Chapter 16: Creating Output  
+*/
+
+LIBNAME cert "/home/u45038867/cert";
+/*
+Example: Using the ODS HTML statement and BODY option to 
+create output in a named file  
+*/
+
+*opening a HTML document to be written;
+ODS HTML body="/home/u45038867/cert/admit.html";
+
+PROC PRINT data=cert.admit label;
+	var sex age height weight actlevel;
+	label actlevel='Activity Level';
+RUN;
+
+*Everything between the ODS statements will be written to admit.html;
+ODS HTML CLOSE;
+
+*Resetting ODS;
+ODS HTML path="%qsysfunc(pathname(work))";
+
+
+
+/*
+Example using BODY=, CONTENTS=, and FRAME= options
+to create an HTML file that contains a Table of contents
+*/
+
+*Creating three files that will appear in the cert library;
+* I had to add the url option so that the fram file will work when
+all files are downloaded from SAS Studio;
+ODS HTML body="/home/u45038867/cert/data.html" (url='data.html')
+	contents="/home/u45038867/cert/toc.html" (url='toc.html')
+	frame="/home/u45038867/cert/frame.html";
+	
+PROC PRINT data=cert.admit (obs=10) label;
+	var id sex age height weight actlevel;
+	label actlevel="Activity Level";
+RUN;
+
+PROC PRINT data=cert.stress2 (obs=10);
+	var id resthr maxhr rechr;
+RUN;
+
+ODS HTML close;
+ODS HTML path="%qsysfunc(pathname(work))";
