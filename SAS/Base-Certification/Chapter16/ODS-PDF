@@ -1,0 +1,58 @@
+/*  
+Chapter 16: Creating PDF Output with ODS
+*/
+
+LIBNAME cert '/home/u45038867/cert';
+
+/*
+Basic example of creating a pdf file  
+*/
+ODS html close;*Closing the Default HTML output;
+
+*Specifying where the PDF file is located;
+ODS pdf file='/home/u45038867/cert/SamplePDF';
+
+PROC CONTENTS data=sashelp.cars;
+RUN;
+
+PROC FREQ data=sashelp.cars;
+	tables origin*type;
+RUN;
+
+ODS pdf close;
+
+/*
+The example below demonstrates how to create a 
+printable TOC  
+*/
+
+ODS html close;
+TITLE "Create a Table of Contents";
+
+Options NODATE;* date and time will not be printed on pdf;
+
+* Contents=YES specifies a TOC will be created
+ bookmarklist=hide means the TOC tree will be created but hidden;
+ODS PDF file='/home/u45038867/cert/MyDefaultTOC.pdf' contents=yes bookmarklist=hide;
+PROC FREQ data=sashelp.cars;
+	tables origin*type;
+RUN;
+
+ODS PDF CLOSE;
+
+
+/*
+Using the STYLE= option to customize the output  
+*/
+ODS html close;
+ODS PDF file='/home/u45038867/cert/festivalprinterstyle.pdf'
+	STYLE=FestivalPrinter;
+
+PROC FREQ data=sashelp.cars;
+	tables origin*type;
+RUN;
+
+ODS PDF CLOSE;
+
+
+
