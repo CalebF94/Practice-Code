@@ -47,3 +47,53 @@ RUN;
 
 ODS HTML close;
 ODS HTML path="%qsysfunc(pathname(work))";
+
+
+
+/*
+Another example using PATH= with URL=NONE
+
+This allows us to specify where the files go but with out relative references
+used in the URL links
+*/
+
+
+ODS html path="/home/u45038867/cert/toc_none/" (url=none)
+	body='data_none.html'
+	contents='toc_none.html'
+	frame='frame_none.html';
+
+PROC CONTENTS data=cert.admit;
+RUN;
+
+PROC PRINT data=cert.admit;
+RUN;
+
+PROC PRINT data=cert.stress2;
+RUN;
+
+ODS HTML CLOSE;
+ODS HTML path="%qsysfunc(pathname(work))";
+
+
+
+/*
+Example using the Style option to change the 
+appearance of the html file  
+*/
+ODS html body="/home/u45038867/cert/data_style.html"
+	style=Harvest;
+	
+PROC PRINT data=cert.admit label;
+	var sex age height weight actlevel;
+RUN;
+
+ODS html close;
+
+/*This lists all the available styles
+57 available 
+*/
+PROC template;
+	list styles/store=sashelp.tmplmst;
+RUN;
+
