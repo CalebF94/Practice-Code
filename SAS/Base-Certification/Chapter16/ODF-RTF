@@ -1,0 +1,13 @@
+/*
+Chapter 16: Creating RTF Output with ODS  
+*/
+
+ODS HTML CLOSE;
+
+ODS RTF FILE="/home/u45038867/cert/SampleRTF" STYLE=FestivalPrinter;
+
+PROC FREQ data=sashelp.cars;
+	tables origin*type;
+RUN;
+
+ODS RTF CLOSE;
