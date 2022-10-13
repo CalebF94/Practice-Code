@@ -1,0 +1,27 @@
+/*
+Chapter 16: Creating Excel Output with ODS  
+*/
+
+LIBNAME cert '/home/u45038867/cert';
+
+*sheet_interval: creates a new ws for each by group
+ suppress_bylines: suppresses the BY lines for each BY group
+ Sheet_LABEL: customizes the ws label
+ EMBEDDED_TITLES: embeds the the title created by the TITLE statement;
+ODS EXCEL FILE="/home/u45038867/cert/multitable.xlsx"
+	OPTIONS(
+		sheet_interval="bygroup"
+		suppress_bylines='yes'
+		sheet_label='country'
+		embedded_titles='yes'
+		);
+		
+TITLE 'Wage Rates By Manager';
+
+PROC MEANS DATA=cert.usa;
+	by manager;
+	var wagerate;
+run;
+
+ODS EXCEL close;
+
