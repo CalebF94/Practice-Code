@@ -53,6 +53,3 @@ PROC FREQ data=sashelp.cars;
 RUN;
 
 ODS PDF CLOSE;
-
-
-
