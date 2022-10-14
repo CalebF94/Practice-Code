@@ -1,0 +1,22 @@
+/*
+Chapter 16: The export Procedure  
+*/
+
+LIBNAME cert '/home/u45038867/cert';
+/*
+below is an example of exporting a subset of the cert.leukemia dataset  
+*/
+
+
+*original dataset had 33 observations for 3 variables;
+PROC CONTENTS data=cert.leukemia;
+RUN;
+
+
+*Notice the EXPORT statement flows across multiple lines;
+* exported dataset contains 15 Observations;
+PROC EXPORT data=cert.leukemia (where=(survived=1))
+	outfile='/home/u45038867/cert/leukemia_surv.csv'
+	dbms=csv
+	replace;
+RUN;
