@@ -1,0 +1,162 @@
+/*
+Chapter 4: Joining Tables Using Set Operators
+
+	- Understanding Set Operators
+	- Using The EXCEPT Set Operator
+	- Using the INTERSECT SET Operator
+	- Using the UNION Set Operator
+	- Using the OUTER UNION Set Operator
+
+*/
+
+LIBNAME certadv '/home/u45038867/certadv';
+
+/*  
+Understanding Set Operators
+*/
+
+*Basic Set Operator Example;
+PROC SQL  number; *Number option adds the ID column;
+	/*has 9 rows*/
+	SELECT *
+		FROM certadv.stress17 UNION
+	/*has 12 rows*/
+	SELECT *
+		FROM certadv.stress18;
+QUIT;
+
+
+*Multiple Set Operators Example;
+PROC SQL;
+	SELECT *
+	FROM certadv.mechanicslevel1
+	OUTER UNION
+	SELECT * 
+	FROM certadv.mechanicslevel2
+	OUTER UNION
+	SELECT *
+	FROM certadv.mechanicslevel3;
+QUIT;
+
+
+*Overlaying Columns example;
+TITLE 'PROC SQL Query: Overlaying Columns';
+PROC SQL;
+	SELECT *
+		FROM certadv.col1 EXCEPT
+	SELECT *
+		FROM certadv.col2;
+QUIT;
+
+
+*Using CORR keyword;
+
+*Multiple Set Operators Example;
+PROC SQL;
+	SELECT *
+	FROM certadv.mechanicslevel1
+	OUTER UNION CORR
+	SELECT * 
+	FROM certadv.mechanicslevel2
+	OUTER UNION CORR
+	SELECT *
+	FROM certadv.mechanicslevel3;
+QUIT;
+
+
+/*
+Using the EXCEPT Operator  
+*/
+
+
+*using EXCEPT alone;
+PROC SQL;
+	TITLE 'Using the EXCEPT Operator';
+	SELECT *
+		FROM certadv.col1 EXCEPT
+	SELECT *
+		FROM certadv.col2;
+QUIT;
+
+
+*EXCEPT operator and ALL keyword to return all 
+rows from first table including duplicates;
+PROC SQL;
+	TITLE 'Using the ALL keyword to return duplicated rows';
+	SELECT *
+		FROM certadv.col1 EXCEPT ALL
+	SELECT *
+		FROM certadv.col2;
+QUIT;
+
+
+* EXCEPT operator with the CORR keyword;
+PROC SQL;
+	TITLE 'Using the CORR keyword';
+	SELECT *
+		FROM certadv.col1 EXCEPT CORR
+	SELECT *
+		FROM certadv.col2;
+QUIT;
+
+
+* EXCEPT operator with both the ALL and CORR keywords;
+PROC SQL;
+	TITLE 'Using the ALL and CORR keywords together';
+	SELECT *
+		FROM certadv.col1 EXCEPT ALL CORR
+	SELECT *
+		FROM certadv.col2;
+QUIT;
+
+
+
+*EXCEPT example;
+PROC SQL;
+	TITLE 'Finding New Employees using EXCEPT';
+	SELECT firstname, lastname
+		FROM certadv.staffchanges EXCEPT ALL
+	SELECT firstname, lastname
+		FROM certadv.staffmaster;
+QUIT;
+
+
+/*
+USING the INTERSECT Operator Alone  
+*/
+
+*Basic INTERSECT operator;
+PROC SQL;
+	SELECT *
+		FROM certadv.col1 INTERSECT
+	SELECT * 
+		FROM certadv.col2;
+QUIT;
+
+
+*Using the CORR keyword with INTERSECT;
+PROC SQL;
+	SELECT *
+		FROM certadv.col1 INTERSECT CORR
+	SELECT * 
+		FROM certadv.col2;
+QUIT;
+
+*Intersect Example;
+PROC SQL;
+	SELECT firstname, lastname
+		FROM certadv.staffchanges INTERSECT ALL
+	SELECT firstname, lastname
+		FROM certadv.staffmaster;
+QUIT;
+	
+	
+/*
+Using the UNION Operator  
+*/
+PROC SQL;
+	SELECT *
+		FROM certadv.col1 UNION 
+	SELECT * 
+		FROM certadv.col2;
+QUIT;
