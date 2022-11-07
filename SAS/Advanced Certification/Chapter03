@@ -1,0 +1,234 @@
+/*
+Chapter 3: Joining Tables using PROC SQL
+
+	- Understanding Joins
+	- Generating a Cartesian Product
+	- Using Inner Joins
+	- Using Natural Joins
+	- Using Outer Joins
+	- Comparing SQL Joins and DATA Step Match-Merges
+*/
+
+LIBNAME certadv '/home/u45038867/certadv';
+
+/*
+Generating a Cartesian Product  
+*/
+PROC SQL;
+	SELECT *
+	FROM certadv.one, certadv.two;
+QUIT;
+
+PROC SQL;
+	SELECT *
+	FROM certadv.one CROSS JOIN certadv.two;
+QUIT;
+
+/*  
+Using Inner Joins
+*/
+*FROM clause and Inner JOIN Keyword;
+PROC SQL;
+	SELECT * /*This will return all columns from both tables*/
+	FROM certadv.one INNER JOIN certadv.two
+	ON one.x=two.x;
+QUIT;
+
+
+TITLE 'Using the >= operator in the ON statement';
+PROC SQL;
+	SELECT *
+	FROM certadv.one INNER JOIN certadv.two
+	ON one.x >= two.x;
+QUIT;
+
+
+*Removing Duplicate columns by explicitly naming columns;
+Title 'Removing Duplicate columns';
+PROC SQL;
+	SELECT one.x, a, b
+	FROM certadv.one INNER JOIN certadv.two
+	ON one.x=two.x;
+QUIT;
+
+*alternate method to remove the duplicate x column;
+PROC SQL;
+	SELECT one.*, b
+	FROM certadv.one INNER JOIN certadv.two
+		ON one.x = two.x;
+QUIT;
+
+
+*Renaming a column using a column alias;
+TITLE 'Renaming column using alias and AS keyword';
+
+PROC SQL;
+	SELECT one.x AS ID, two.x, a, b
+	FROM certadv.one INNER JOIN certadv.two
+		ON one.x=two.x;
+QUIT;
+
+
+*Tables that have multiple rows with matching values;
+PROC SQL;
+	SELECT *
+	FROM certadv.three INNER JOIN certadv.four
+	ON three.x=four.x;
+QUIT;
+
+*A data match-merge only has two rows;
+DATA work.test;
+	MERGE certadv.three (in=in3) certadv.four (in=in4);
+	BY x;
+	IF in4=1 AND in3=1;
+RUN;
+
+PROC PRINT data=work.test;
+RUN;
+
+
+* Table Aliases;
+PROC SQL;
+	SELECT s.empid, lastname, firstname, jobcode
+		/*we can reference the tables using the shorter aliases s and p*/
+		FROM certadv.staffmaster as s INNER JOIN 
+			 certadv.payrollmaster as p
+		ON s.empid=p.empid;
+QUIT;
+
+*A complex PROC SQL INNER JOIN where we create columns and perform sorting;
+PROC SQL outobs=15;
+	TITLE 'New York Employees';
+	SELECT substr(firstname, 1,1) || '. '|| lastname as Name,
+		   Jobcode,
+		   int((today() - dateofbirth)/365.25) as Age
+	FROM certadv.payrollmaster as p INNER JOIN
+		 certadv.staffmaster as s
+	ON p.empid = s.empid
+	WHERE state='NY'
+	order by 2, 3;
+QUIT;
+
+*Using summary functions with Inner JOINS;
+PROC SQL outobs=15;
+	TITLE 'Average Age of New York Employees';
+	SELECT jobcode, 
+		   count(p.empid) as Employees,
+		   avg(int((today() - dateofbirth)/365.25)) format=4.1 as AvgAge
+	FROM certadv.payrollmaster as p INNER JOIN 
+	     certadv.staffmaster as s
+	ON p.empid=s.empid
+	WHERE state='NY'
+	GROUP BY jobcode
+	ORDER BY jobcode;
+QUIT;
+
+
+/*  
+Using Natural Joins
+*/
+
+*Using a Natural Join;
+PROC SQL feedback;
+	SELECT *
+	FROM certadv.schedule NATURAL JOIN 
+	     certadv.courses;
+QUIT;
+
+/*  
+Using Outer Joins
+3 Types: LEFT, RIGHT, FULL OUTER
+*/
+
+*Using a Left Outer Join;
+TITLE 'Left Join Example';
+PROC SQL;
+	SELECT *
+	/*All rows from certadv.one will be returned*/
+	FROM certadv.one LEFT JOIN certadv.two
+		ON one.x=two.x;
+QUIT;
+
+*Removing duplicate columns;
+TITLE 'Removng duplicate columns in a LEFT Join';
+PROC SQL;
+	SELECT one.*, b
+	FROM certadv.one as one LEFT JOIN certadv.two as two
+		ON one.x=two.x;
+QUIT;
+
+
+*Using a Right Outer Join;
+TITLE 'Right Join Example';
+PROC SQL;
+	SELECT *
+	/*All rows from certadv.two will be returned*/
+	FROM certadv.one RIGHT JOIN certadv.two
+		ON one.x=two.x;
+QUIT;
+
+
+
+*Using a FULL Outer Join;
+TITLE 'FULL Outer Join Example';
+PROC SQL;
+	SELECT *
+	/*All rows from both tables will be returned, 
+	  both matching and nonmatching*/
+	FROM certadv.one FULL JOIN certadv.two
+		ON one.x=two.x;
+QUIT;
+
+
+*Complex Outer Join Example;
+PROC SQL;
+	SELECT m.date, 
+		   m.flightnumber label='Flight Number', 
+		   m.destination label='Left Destination',
+		   f.destination label='Right Destination',
+		   f.delay label='Delay in Minutes'
+	FROM certadv.marchflights as m LEFT JOIN certadv.flightdelays f
+		ON m.Date = f.Date AND 
+		   m.flightnumber=f.flightnumber
+	ORDER BY delay;
+QUIT;
+
+
+/*
+Comparing SQL Joins and DATA Step Match-Merges  
+*/
+
+*When all of the values match, DATA step and PROC SQL can 
+create the same table;
+
+DATA merged;
+	MERGE certadv.five certadv.six;
+	BY x;
+RUN;
+
+PROC PRINT data=merged;
+	TITLE 'DATA step merge';
+RUN;
+
+PROC SQL;
+	TITLE 'PROC SQL';
+	SELECT five.*, b
+	FROM certadv.five INNER JOIN certadv.six
+		ON five.x=six.x
+	ORDER BY x;
+QUIT;
+
+
+*Using the COALESCE Function;
+PROC SQL;
+	TITLE ' Table Merged with PROC SQL';
+	SELECT COALESCE(three.x, four.x) as X, a, b
+	FROM certadv.three FULL JOIN certadv.four
+		ON three.x = four.x;
+QUIT;
+
+
+PROC SQL;
+	SELECT *
+	FROM certadv.three, certadv.four;
+QUIT;
