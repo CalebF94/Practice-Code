@@ -1,0 +1,146 @@
+/*
+Chapter 2
+	- The Create TABLE STATEMENT
+	- Using the LIKE Clause
+	- Using the AS Keyword
+	- The INSERT Statement
+	- The DESCRIBE TABLE Statement
+	- Using Dictionary Tables
+*/
+
+LIBNAME certadv '/home/u45038867/certadv';
+
+********************************;
+/* THE CREATE TABLE STATEMENT  */
+********************************;
+
+* Creating an Empty Table by Defining Column Structure;
+PROC SQL;
+	*4 columns, one character, 3 numeric;
+	CREATE TABLE work.discount
+		(Destination char(3),
+		BeginDate num Format=date9.,
+		EndDate num Format=date9.,
+		Discount num);
+QUIT;
+
+*Using Column Modifiers;
+PROC SQL;
+	CREATE TABLE work.departments
+		(Dept varchar(20) label='Department',
+		Code integer label='Dept Code',
+		Manager varchar(20),
+		AuditDate num format=date9.
+		);
+QUIT;
+
+
+********************************;
+/* Using the LIKE Clause       */
+********************************;
+*Empty table that is like another;
+PROC SQL;
+	*flightdelays2 will have the same structure as flightdelays
+	 but there will be no rows;
+	CREATE TABLE work.flightdelays2
+		LIKE certadv.flightdelays;
+QUIT;
+
+
+********************************;
+/* Using the AS Keyword        */
+********************************;
+*Creating a Table from a Query Result;
+PROC SQL;
+	CREATE table work.ticketagents as	
+		SELECT lastname, firstname, jobcode, salary
+		FROM certadv.payrollmaster,
+			 certadv.staffmaster
+		WHERE payrollmaster.empid = staffmaster.empid
+			AND jobcode contains 'TA';
+QUIT;
+
+PROC SQL;
+	SELECT *
+	FROM work.ticketagents;
+QUIT;
+
+
+********************************;
+/* The INSERT Statement        */
+********************************;
+
+*Inserting rows using The set statement;
+PROC SQL;
+	INSERT INTO work.discount
+		/*Entering first row*/
+		SET destination='LHR',
+			begindate='01MAR2018'd,
+			enddate='05MAR2018'd,
+			discount=.33
+		/*Entering second row*/
+		SET destination='CPH',
+			begindate='03MAR2018'd,
+			enddate='10MAR2018'd,
+			discount=.15;
+	
+	/*Generating a report*/
+	SELECT *
+		FROM work.discount;
+QUIT;
+
+
+
+*Inserting rows using the values statement;
+PROC SQL;
+	/*Specifying columns where values will get inserted*/
+	INSERT INTO work.discount (destination, begindate, enddate, discount)
+		VALUES ('ORD', '05MAR2018'd, '15MAR2018'd, .25)
+		VALUES ('YYZ', '06MAR2018'd, '20MAR2018'd, .10);
+		
+	SELECT *
+		FROM work.discount;
+QUIT;
+
+
+*Inserting Rows from a Query Result;
+PROC SQL;
+	*this is a copy of the existing table;
+	CREATE TABLE work.mechanicslevel3_new as
+	SELECT *
+		FROM certadv.mechanicslevel3;
+QUIT;
+
+*now we enter the new row;
+PROC SQL;
+	INSERT INTO work.mechanicslevel3_new 
+		SELECT empid, jobcode, salary
+		FROM certadv.mechanicslevel2
+		WHERE empid='1653';
+	
+	*PRinting the table;
+	SELECT *
+	FROM work.mechanicslevel3_new;
+QUIT;
+
+
+********************************;
+/* The DESCRIBE TABLE STATEMENT*/
+********************************;
+PROC SQL;
+	DESCRIBE TABLE work.discount;
+QUIT;
+
+
+********************************;
+/*Using Dictionary Tables      */
+********************************;
+PROC SQL;
+	DESCRIBE TABLE dictionary.tables;
+QUIT;
+
+PROC SQL;
+	SELECT memname format=$20., nobs, nvar, crdate
+	FROM dictionary.tables
+	where libname='CERTADV';
+QUIT;
