@@ -1,1 +1,172 @@
-hold
+LIBNAME certadv '/home/u45038867/certadv';
+
+
+/*Example of the BETWEEN-AND Operator  */
+PROC SQL outobs=10;
+	SELECT flightnumber, date, destination,
+		boarded + transferred + nonrevenue as Total
+	FROM certadv.marchflights
+	WHERE calculated Total BETWEEN 90 and 70;
+QUIT;
+
+/*The CONTAINS (?) Operator */
+Title 'Using the CONTAINS operator';
+PROC SQL;
+	SELECT Name
+	FROM certadv.frequentflyers
+	WHERE name contains 'ER';
+QUIT;
+
+
+/*The IN operator to subset based on a list*/
+TITLE 'Using the IN Operator';
+PROC SQL;
+	SELECT NAME, STATE
+	FROM certadv.frequentflyers
+	WHERE STATE IN ('AZ', 'MD');
+QUIT;
+
+/*IS MISSING and IS NULL operators */
+TITLE 'The IS MISSING and IS NULL Operators';
+PROC SQL;
+	SELECT boarded, transferred, nonrevenue, deplaned
+	FROM certadv.marchflights
+	WHERE boarded IS MISSING;*could have use IS NULL;
+QUIT;
+
+
+/*The LIKE Operator and Wildcard Characters  */
+TITLE 'LIKE Operator and Wildcard Characters';
+PROC SQL;
+	SELECT ffid, name, address
+	FROM certadv.frequentflyers
+	/*Finding addresses that have P then some letters and then end with PLACE*/
+	WHERE address like '%P%PLACE';
+QUIT;
+
+
+PROC SQL;
+	SELECT membertype, sum(milestraveled) as TotalMiles
+	FROM certadv.frequentflyers
+	group by membertype;
+QUIT;
+
+
+/*Select Clause and Summary function processing*/
+TITLE 'Summary function with no columns outside summary function';
+PROC SQL;
+	SELECT avg(salary) as AvgSalary
+	FROM certadv.payrollmaster
+	GROUP BY JobCode;*If this was left out, we would get 1 row;
+QUIT;
+
+
+TITLE 'Summary function and additional columns outside summary functions';
+PROC SQL;
+	SELECT EMPID, jobcode, dateofhire, avg(salary) as AvgSalary
+	FROM certadv.payrollmaster
+	GROUP BY jobcode;
+QUIT;
+
+
+/*Using the Count summary function*/
+TITLE 'COUNT(*) with in each group';
+PROC SQL;
+	SELECT substr(jobcode, 1, 2) label='Job Category', COUNT(*) as Count
+	FROM certadv.payrollmaster
+	GROUP BY 1;*Grouping by first column(job category);
+QUIT;
+
+
+TITLE 'Counting Unique values with the DISTINCT keyword';
+PROC SQL;
+	SELECT COUNT(DISTINCT jobcode) as COUNT
+	FROM certadv.payrollmaster;
+QUIT;
+
+TITLE 'Returning Unique values with the DISTINCT keyword';
+PROC SQL;
+	SELECT DISTINCT jobcode as jobcodes
+	FROM certadv.payrollmaster;
+QUIT;
+
+
+/*
+Selecting Groups by Using the HAVING Clause  
+*/
+TITLE 'Selecting Groups with Having Clause';
+PROC SQL;
+	SELECT jobcode, avg(salary) as AvgSalary format=dollar11.2
+	FROM certadv.payrollmaster
+	GROUP BY jobcode
+	HAVING AvgSalary > 56000;
+QUIT;
+
+
+/*Data Remerging example */
+TITLE 'Data Rermerging';
+PROC SQL;
+	SELECT empid, salary, (salary/sum(salary)) as Percent format=percent8.2
+	FROM certadv.payrollmaster
+	where jobcode contains 'NA';
+QUIT;
+
+/*Order By Clause */
+TITLE 'Sorting by a single column';
+PROC SQL;
+	SELECT empid, jobcode, salary, salary*.06 as Bonus
+	FROM certadv.payrollmaster
+	WHERE salary<32000
+	ORDER by jobcode;
+QUIT;
+
+TITLE 'Ordering by Column Position';
+PROC SQL;
+	SELECT empid, jobcode, salary, dateofhire
+	FROM certadv.payrollmaster
+	WHERE salary<32000
+	ORDER BY 4, 2;
+QUIT;
+
+
+/*PROC SQL Options*/
+TITLE 'The inobs= option';
+PROC SQL inobs=5;
+	SELECT * 
+	FROM certadv.mechanicslevel1;
+QUIT;
+
+
+TITLE 'The outobs= option';
+PROC SQL INOBS=10 OUTOBS=6;
+	SELECT *
+	FROM certadv.payrollmaster
+	ORDER BY salary desc;
+QUIT;
+
+
+TITLE 'Using the Number Option';
+PROC SQL INOBS=10 NUMBER	 ;
+	SELECT flightnumber, destination
+	FROM certadv.internationalflights;
+QUIT;
+
+
+/*Validating Syntax without executing the query*/
+PROC SQL NOEXEC;
+	SELECT empid, jobcode, salary
+	FROM certadv.payrollmaster
+	WHERE jobcode contains 'NA'
+	ORDER BY salary;
+QUIT;
+
+PROC SQL;
+	VALIDATE
+	SELECT empid, jobcode, salary
+	FROM certadv.payrollmaster
+	WHERE jobcode contains 'NA'
+	ORDER BY salary;
+QUIT;
+
+
+
