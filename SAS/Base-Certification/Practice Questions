@@ -1,0 +1,80 @@
+/*
+Practice problems  
+*/
+
+*Project 1;
+PROC SORT DATA=sashelp.shoes OUT=work.sortedshoes;
+	BY descending product sales;
+RUN;
+
+PROC PRINT data=work.sortedshoes;
+	Title 'Project 1';
+RUN;
+
+/*
+Answers:
+	1) Slipper
+	2) Pacific
+*/
+
+
+
+*Project 2;
+DATA work.shoerange;
+	SET sashelp.shoes;
+	LENGTH SalesRange $20;
+	IF Sales < 100000 THEN SalesRange='Lower';
+	ELSE IF 100000<=Sales<=200000 THEN SalesRange='Middle';
+	ELSE IF Sales>200000 THEN SalesRange='Upper';
+	ELSE SalesRange='Other';
+RUN;
+
+PROC FREQ data=work.shoerange;
+	Title 'Salesrange Frequencies';
+	TABLE SalesRange;
+RUN;
+
+PROC MEANS data=work.shoerange N MEAN;
+	Title 'SalesRange using PROC MEANS';
+	VAR Sales;
+	CLASS SalesRange;
+RUN;
+
+
+
+*Project 3;
+data work.lowchol work.highchol work.misschol;
+	set sashelp.heart;
+	if cholesterol = . THEN output work.misschol;
+	ELSE IF cholesterol < 200 THEN output work.lowchol;
+	ELSE IF cholesterol >= 200 THEN output work.highchol;
+	
+run;
+
+
+DATA work.input;
+	INPUT VAR1 $ 1. VAR2 $ 5.;
+	DATALINES;
+A one
+A two
+B three
+C four
+A five
+;
+RUN;
+
+
+
+data WORK.ONE WORK.TWO;
+set WORK.INPUT;
+if Var1='A' then 
+	DO;
+		putlog 'NOTE: first output';
+		output WORK.ONE;
+	END;
+putlog 'Second Output' _N_=;
+output;
+run;
+
+PROC PRINT data=work.one;
+RUN;
