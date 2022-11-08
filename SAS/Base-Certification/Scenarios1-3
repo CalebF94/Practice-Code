@@ -1,0 +1,66 @@
+/*
+Chapter 17 Practice Scenarios
+*/
+
+LIBNAME cert '/home/u45038867/cert';
+
+*Scenario 1;
+PROC SORT data=cert.patients out=work.patients_sort;
+	BY ID;
+RUN;
+
+PROC SORT data=cert.measure out=work.measure_sort;
+	BY ID;
+RUN;
+
+DATA work.merge;
+	MERGE work.patients_sort work.measure_sort;
+	BY ID;
+	IF age<50;
+RUN;
+
+PROC SORT data=work.merge OUT=work.sortpatients;
+	BY descending Age;
+RUN;
+
+PROC PRINT data=work.sortpatients;
+RUN;
+
+*Answers 1) 16
+		 2) 200 
+;
+
+*Scenario 2;
+DATA work.stress1;
+	SET cert.stress;
+	IF RestHR>70 THEN DELETE;
+	TotalTime = TimeMin*60 + TimeSec;
+	IF Totaltime<600 THEN DELETE;
+RUN;
+
+PROC PRINT DATA=work.stress1;
+	Title 'Scenario 2';
+RUN;
+
+*Answers 1) 6
+		 2) 1055
+;
+
+
+*Scenario 3;
+DATA work.staffreports;
+	SET Cert.staff;
+	WHERE WageCategory ^= 'H';
+	FORMAT DOB mmddyy10.;
+	Raise = WageRate*.03;
+RUN;
+
+PROC PRINT data=work.staffreports;
+	Title 'Scenario 3';
+	SUM Raise;
+RUN;
+
+*Answers 1) 07/17/1951
+		 2) 177.32
+		 3) 2024.05
+;
