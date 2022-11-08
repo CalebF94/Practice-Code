@@ -1,0 +1,81 @@
+/*
+Chapter 17 Practice Scenarios  
+*/
+
+LIBNAME cert '/home/u45038867/cert';
+
+*Scenario 7;
+DATA work.scenario7;
+	SET cert.temp18;
+	FORMAT Day Date9.;
+	Month=MONTH(Day);
+RUN;
+
+PROC FREQ data=work.scenario7;
+	TABLES HighTemp;
+RUN;
+
+PROC MEANS data=work.scenario7 mean stddev;
+	VAR AvgHighTemp AvgLowTemp;
+	CLASS Month;
+RUN;
+
+PROC PRINT DATA=work.scenario7;
+	Title 'Scenario 7';
+	
+RUN;
+
+*
+Answers:
+	1) 2
+	2) 64
+	3) 29
+	4) 3.17
+	
+	
+*Scenario 8;
+DATA work.scenario8 ;
+	SET cert.addresses;
+	ZipCode=SUBSTR(State, 3, 5);
+	State=SUBSTR(State, 1, 2);
+RUN;
+
+PROC FREQ data=work.scenario8 order=FREQ;
+	TABLES State;	
+RUN;
+
+PROC PRINT data=work.scenario8;
+RUN;
+	
+*
+Answers
+	1) 3
+	2) 45
+	3) 2;
+	
+	
+*Scenario 9;
+%let Location=USA;
+
+DATA work.FlightEmpData;
+	SET cert.Empdata cert.empdatu cert.Empdatu2;
+	IF Country="&Location" AND Salary>=30000;
+RUN;
+
+PROC SORT data=work.FlightEmpData OUT=work.FlightEmpData;
+	BY descending Salary;
+RUN;
+
+PROC EXPORT data=work.flightempdata 
+	file='/home/u45038867/cert/flightempdata.csv' 
+	DBMS=CSV 
+	REPLACE;
+RUN;
+
+PROC CONTENTS data=work.FlightEmpData;
+RUN;
+
+*
+Answers
+	1) 33000
+	2) 288 bytes
