@@ -1,0 +1,63 @@
+/*Chapter 17: Practice Scenarios*/
+
+LIBNAME cert '/home/u45038867/cert';
+
+
+*Scenario 4;
+ODS HTML CLOSE;
+ODS PDF file='/home/u45038867/cert/LGA Airport.pdf'  
+	style=FestivalPrinter;
+
+TITLE "Laguardia Flights";
+
+PROC SORT DATA=cert.laguardia OUT=work.laguardia;
+	BY Dest;
+RUN;
+
+PROC PRINT data=work.laguardia;
+	BY DEST;
+RUN;
+
+ODS PDF Close;
+
+/*
+Answers
+	1) 95 kb
+	2) 129
+	3) PAR
+*/
+
+
+*Scenario 5: SEE EHS01;
+
+*Scenario 6;
+PROC IMPORT DATAFILE='/home/u45038867/cert/heart.xlsx' 
+	out=work.Heart
+	DBMS=XLSX
+	REPLACE;
+RUN;
+
+DATA work.Heart;
+	LENGTH Smoking_Status $17;
+	SET work.heart;
+	DROP AgeAtDeath DeathCause;
+	WHERE Status='Alive';
+	IF AgeCHDdiag = . THEN DELETE;
+	
+	If 0<=Smoking<6 THEN Smoking_Status = 'None (0-5)';
+	ELSE IF 6<=Smoking<=15 THEN Smoking_Status = 'Moderate (6-16)';
+	ELSE IF 16<=Smoking<=25 THEN Smoking_Status = 'Heavy (16-25)';
+	ELSE IF Smoking>25 THEN Smoking_Status = 'Very Heavy (>25)';
+	ELSE Smoking_Status = 'Error';
+RUN;
+
+PROC FREQ DATA=work.heart;
+	TABLES AGECHDdiag*Smoking_Status / nopercent norow nocol;
+RUN;
+
+/*
+Answers
+	1) 102
+	2) 2
+	3) 3
+*/
