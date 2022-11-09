@@ -160,3 +160,91 @@ PROC SQL;
 	SELECT * 
 		FROM certadv.col2;
 QUIT;
+	
+	
+*Using the ALL keyword with UNION;
+PROC SQL;
+	TITLE 'UNION and the ALL keyword';
+	SELECT *
+		FROM certadv.col1 UNION ALL
+	SELECT * 
+		FROM certadv.col2;
+QUIT;
+
+
+*Using the CORR keyword with the UNION operator;
+PROC SQL;
+	TITLE 'UNION operator with CORR keywords';
+	SELECT *
+		FROM certadv.col1 UNION CORR	
+	SELECT *
+		FROM certadv.col2;
+QUIT;
+
+
+*Using the CORR and ALL keywords;	
+PROC SQL;
+	TITLE 'UNION operator with the ALL and CORR keywords';
+	SELECT *
+		FROM certadv.col1 UNION CORR ALL
+	SELECT *
+		FROM certadv.col2;
+QUIT;
+
+*Using the UNION Operator;
+PROC SQL;
+	TITLE 'USing the UNION Operator';
+	PROC SQL;
+		SELECT *
+			FROM certadv.stress17 UNION CORR
+		SELECT *
+			FROM certadv.stress18;
+QUIT;
+
+
+
+*Another example appending a table to itself;
+PROC SQL;
+	TITLE 'USing the UNION operator';
+		SELECT 'Total Points Earned', SUM(pointsearned) format=comma12.
+			FROM certadv.frequentflyers UNION
+			
+		SELECT 'Total Points Used', SUM(pointsused) format=comma12. 
+			FROM certadv.frequentflyers UNION
+			
+		SELECT 'Total Miles Traveled', SUM(Milestraveled) format=comma12.
+			FROM certadv.frequentflyers;
+QUIT;
+
+
+/*
+The OUTER UNION Operator  
+*/
+
+*USing the Outer UNINON Operator Alone;
+PROC SQL;
+	SELECT * 
+		FROM certadv.col1 OUTER UNION
+	SELECT *
+		FROM certadv.col2;
+QUIT;
+
+
+*Using the OUTER UNION and CORR keyword;
+PROC SQL;
+	SELECT *
+		FROM certadv.col1 OUTER UNION CORR
+	SELECT *
+		FROM certadv.col2;
+QUIT;
+
+*Using multiple OUTER UNION operators;
+PROC SQL;
+	SELECT *
+		FROM certadv.mechanicslevel1 OUTER UNION CORR
+	SELECT * 
+		FROM certadv.mechanicslevel2 OUTER UNION CORR
+	SELECT *
+		FROM certadv.mechanicslevel3;
+QUIT;
+						
