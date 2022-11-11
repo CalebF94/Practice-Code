@@ -1,0 +1,183 @@
+/*
+CHAPTER 5: Using Subqueries  
+
+	- Subsetting Data Using Subqueries
+	- Creating and Managing Views Using PROC SQL
+*/
+
+LIBNAME certadv '/home/u45038867/certadv';
+
+*Using a Single-Value Noncorrelated Subqueries;
+PROC SQL;
+	SELECT jobcode, avg(salary) as AvgSalary format=dollar11.2
+		FROM certadv.payrollmaster
+		group by jobcode
+		HAVING AVG(salary)>
+			(SELECT avg(salary)
+				FROM certadv.payrollmaster
+			);
+QUIT;
+
+
+*Using a conditional operator in a noncorrelated subquery;
+PROC SQL;
+	SELECT Empid, Firstname, lastname, city, state
+		FROM certadv.staffmaster
+		WHERE empid IN 
+			(SELECT EmpId 
+				FROM certadv.payrollmaster
+				WHERE MONTH(DATEOFBIRTH)=2
+			);
+QUIT;
+
+
+*Using the ANY Operator;
+PROC SQL;
+	SELECT empid, jobcode, dateofbirth
+		FROM certadv.payrollmaster
+		WHERE jobcode IN ('FA1', 'FA2') AND
+			  dateofbirth > ANY (SELECT dateofbirth
+			  						FROM certadv.payrollmaster
+			  						WHERE jobcode='FA3'
+			  					);
+QUIT;
+
+
+*Using the ALL Operator;
+PROC SQL;
+SELECT empid, jobcode, dateofbirth
+		FROM certadv.payrollmaster
+		WHERE jobcode IN ('FA1', 'FA2') AND
+			  dateofbirth < ALL (SELECT dateofbirth
+			  						FROM certadv.payrollmaster
+			  						WHERE jobcode='FA3'
+			  					);
+QUIT;
+
+
+*USing Correlated Subqueries;
+PROC SQL;
+	SELECT lastname, firstname
+		FROM certadv.staffmaster
+			WHERE 'NA' = 
+				(SELECT jobcategory
+ 					FROM certadv.supervisors 
+ 					/*This is passed from the outer query*/
+					WHERE staffmaster.empid = supervisors.empid);
+QUIT;
+
+
+*Using NOT EXISTS in a correlated subquery;
+PROC SQL;
+	SELECT lastname, firstname
+		FROM certadv.flightattendants
+			WHERE NOT EXISTS	
+				(SELECT * 
+					FROM certadv.flightschedule
+					WHERE flightattendants.empid = flightschedule.empid);
+QUIT;
+
+
+
+
+/*
+Creating and managing views  
+*/
+
+*Creating a PROC SQL View;
+PROC SQL;
+	CREATE VIEW certadv.faview AS	
+		SELECT lastname, firstname,
+		       int((today() - dateofbirth)/365.25) AS Age,
+		       substr(jobcode,3,1) as LEVEL,
+		       salary
+			FROM certadv.payrollmaster, certadv.staffmaster
+			WHERE jobcode contains 'FA' AND
+				  staffmaster.empid=payrollmaster.empid
+			ORDER BY Level;
+QUIT;
+
+
+*Example: Using a PROC SQL View;
+PROC SQL;
+	SELECT *
+		FROM certadv.faview;
+QUIT;
+
+PROC MEANS data=certadv.faview;
+	VAR Salary;
+	BY Level;
+RUN;
+
+
+*Displaying the definition of a PROC SQL View;
+PROC SQL;
+	DESCRIBE VIEW certadv.faview;
+QUIT;
+
+*Omitting the LIBREF in the FROM clause;
+PROC SQL;	
+	CREATE VIEW certadv.payrollv AS 
+		SELECT * 
+			FROM payrollmaster;
+			/*The alternative would be FROM certadv.payrollmaster*/
+QUIT;
+
+PROC PRINT data=certadv.payrollv;
+	TITLE 'The payrollv view';
+RUN;
+
+/*  */
+/* *Example: Using an Embedded LIBNAME Statement; */
+/* PROC SQL; */
+/* 	CREATE VIEW certadv.payrollv AS	 */
+/* 		SELECT * */
+/* 			FROM airline.payrollmaster */
+/* 			USING LIBNAME airline 'SAS-library-one'; */
+/* QUIT; */
+/*  */
+/* PROC PRINT data=certadv.payrollv; */
+/* RUN; */
+
+
+*Updating PROC SQL Views;
+PROC SQL;
+/*Creating a view */
+	CREATE VIEW certadv.raisev AS	
+		SELECT empid, jobcode,
+			   salary format=dollar12.,
+			   salary/12 as MonthlySalary format=12.
+		FROM certadv.payrollmaster;
+QUIT;
+
+
+PROC SQL;
+/*Showing the View  */
+	SELECT *
+		FROM certadv.raisev
+		WHERE jobcode in ('PT2', 'PT3');
+QUIT;
+
+*Updating a created view;
+PROC SQL;
+	UPDATE certadv.raisev
+		SET salary=salary*1.20
+		WHERE jobcode='PT3';
+QUIT;
+
+*Resubmitting the View;
+PROC SQL;
+	SELECT *
+		FROM certadv.raisev
+		WHERE jobcode in ('PT2', 'PT3');
+QUIT;
+
+
+
+/*Dropping a PROC SQL View*/
+PROC SQL;
+	DROP VIEW certadv.raisev;
+QUIT;
+
+
+
