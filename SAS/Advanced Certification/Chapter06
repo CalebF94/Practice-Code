@@ -112,3 +112,38 @@ PROC SQL;
 QUIT;
 TITLE;
 FOOTNOTE;
+
+
+/*
+PROC FEDSQL  
+*/
+
+*Basic example using the Limit clause;
+PROC FEDSQL;
+	SELECT state, census_apr2010, popest_apr2018
+		FROM certadv.census
+		ORDER by state
+		limit 10;
+QUIT;
+
+
+*Using the PUT function without the AS keyword;
+PROC FEDSQL;
+	SELECT salesrep,
+		   PUT(sales1, dollar10.2),
+		   PUT(sales2, dollar10.2),
+		   PUT(sales3, dollar10.2),
+		   PUT(sales4, dollar10.2)
+		FROM certadv.qsales;
+QUIT;
+
+*Using the PUT function with the AS keyword;
+PROC FEDSQL;
+	SELECT salesrep,
+		   PUT(sales1, dollar10.2) as Sales1,
+		   PUT(sales2, dollar10.2) as Sales2,
+		   PUT(sales3, dollar10.2) as Sales3,
+		   PUT(sales4, dollar10.2) as Sales4
+		FROM certadv.qsales;
+QUIT;
+
