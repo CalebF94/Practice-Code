@@ -1,0 +1,114 @@
+/*
+Chapter 6: Advanced SQL Techniques  
+
+	- Creating Data-Driven Macro Variables with PROC SQL
+	- Accessing DBMS Data with SAS/ACCESS
+	- The FedSQL Procedure
+	- Quiz
+	
+*/
+
+
+LIBNAME certadv '/home/u45038867/certadv';
+
+*Creating a macro variable;
+PROC SQL;
+	/*the INTO statement creates the avgSal macro variable */
+	SELECT AVG(Salary) into:avgSal
+		FROM certadv.payrollmaster;
+QUIT;
+
+
+*Using the macro variable;
+TITLE "Salaries above: &AvgSal";
+PROC SQL;
+	SELECT EmpID, JobCode, Salary, DateofHire
+		FROM certadv.payrollmaster
+		WHERE Salary>&AvgSal AND DateofHire>'01JAN2015'd;
+QUIT;
+
+*Printing the macro variable value to the SAS log;
+%put avgsal=&avgSAL;
+%put &=AvgSal;
+
+
+*Examples using TRIMMED to removed spaces;
+PROC SQL;
+	SELECT MIN(PointsEarned) INTO:MinMiles	
+		FROM certadv.frequentflyers;
+QUIT;
+
+*Printing untrimmed results;
+%put &=MinMiles;
+
+
+PROC SQL;
+	SELECT MIN(PointsEarned) INTO:MinMiles	TRIMMED	
+		FROM certadv.frequentflyers;
+QUIT;
+
+*Printing results;
+%put &=MinMiles;
+
+
+*Concatenating values into a macro variable;
+PROC SQL noprint;
+	/*Here we create the macro variable */
+	SELECT distinct location INTO: sites SEPARATED BY ' '
+		FROM certadv.schedule;
+QUIT;
+
+*Using the concatenated values in the title;
+TITLE 'Total Revenue';
+TITLE2 "From Course Sites: &sites";
+TITLE3 'From Course Sites: &sites'; *notice the macro variable doesn't work with single quotes;
+PROC MEANS data=certadv.all sum maxdec=0;
+	VAR fee;
+RUN;
+
+
+
+*Applying formats to Character and Numeric variables;
+PROC SQL noprint;
+	/*Notice the syntax used to create multiple
+	  macro variables at once. Define both of them
+	  with a single INTO statement
+	*/
+	SELECT avg(Census_Apr2010) as No_Format,
+		   avg(Census_Apr2010) as Format format=comma16.
+		   INTO: CensusAvg2010, 
+		   	   :CensusAvg2010_Format
+		   FROM certadv.census;
+QUIT;
+
+*Printing variable values;
+%put &=CensusAvg2010;
+%put &=CensusAvg2010_Format;
+
+
+*Character variable;
+PROC SQL noprint;
+	SELECT State format=$upcase23. as State INTO: Statelist separated by ', '
+		FROM certadv.census
+		WHERE PopEst_Apr2018>&CensusAvg2010 and PopEst_Apr2018>10000000
+		ORDER BY State;
+QUIT;
+
+%put &=statelist;
+
+
+*Another example using the above macro variables;
+TITLE "States with Population Estimates Above Census Avg: &CensusAvg2010_Format";
+footnote "&Statelist";
+
+PROC SQL;
+	SELECT strip(State) format=$upcase23. as State,
+		   Census_Apr2010 format=comma12.,
+		   PopEst_Apr2010 format=comma12.,
+		   (PopEst_apr2018-Census_Apr2010) format=comma12. as PopChange
+		FROM certadv.census
+		WHERE PopEst_Apr2018>&CensusAvg2010 AND PopEst_Apr2018>10000000
+		ORDER BY State;
+QUIT;
+TITLE;
+FOOTNOTE;
