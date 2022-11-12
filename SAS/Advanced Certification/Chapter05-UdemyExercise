@@ -1,0 +1,40 @@
+/*Chapter 6: Subqueries Udemy Coding Exercis*/
+
+LIBNAME udemy '/home/u45038867/Udemy-AdvancedSAS/Data';
+
+
+
+PROC IMPORT datafile='/home/u45038867/Udemy-AdvancedSAS/Data/Patient_HD.xlsx'
+	DBMS=xlsx
+	OUT=work.patient_hd
+	REPLACE;
+RUN;
+
+
+PROC IMPORT datafile='/home/u45038867/Udemy-AdvancedSAS/Data/Patient_age_gender.xlsx'
+	DBMS=xlsx
+	OUT=work.patient_age
+	REPLACE;
+RUN;
+
+
+/*Create an output with information on 'hospital stay in days of male patient'*/
+
+PROC SQL;
+	SELECT patient_id, (End_date - Start_date) format=5.0 as Days 
+	FROM work.patient_hd
+	WHERE patient_id IN (SELECT patient_id
+							FROM work.patient_age
+							WHERE gender='m');
+QUIT;
+
+
+/*Create an output with info on 'Hospital stay in days of female patients with age>60'*/
+PROC SQL;
+	SELECT *, (End_date - Start_date) format=5.0 as Days
+		FROM work.patient_hd
+		WHERE patient_id IN (SELECT patient_id
+								FROM work.patient_age
+								WHERE gender='f' AND age>60
+							);
+QUIT;
