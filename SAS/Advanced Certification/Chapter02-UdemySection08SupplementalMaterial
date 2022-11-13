@@ -1,0 +1,130 @@
+/*Udemy Notes on Creating and Updating Tables and Views  */
+
+*Lecture 42: CREATE TABLE Statement;
+
+PROC SQL;
+	CREATE TABLE stu_info
+		(stu_name 	char(10),
+		 stu_gender	char(1),
+		 Birthdate	num
+		 			informat=date9.
+		 			format=date9.);
+QUIT;
+		
+PROC SQL;
+	DESCRIBE TABLE stu_info;
+QUIT;
+
+
+*Lecture 43: CREATE TABLE and the AS keyword;
+PROC IMPORT datafile='/home/u45038867/Udemy-AdvancedSAS/Data/score_data_miss_birthdate.xlsx'
+	DBMS=XLSX
+	OUT=work.score_data
+	REPLACE;
+RUN;
+
+PROC SQL outobs=10;
+	CREATE TABLE score_data_part AS
+		SELECT Name label='student name' format $15.,
+		       Score1, Score2, Score3,
+		       gender as student_gender,
+		       birthdate 'student birthdate' format=date10.
+		FROM score_data;
+QUIT;
+
+PROC PRINT data=score_data_part;
+RUN;
+
+*Lecture 44: Create Tables like an Existing Table with LIKE clause & Copy an Existing Table;
+
+*Copy table structure but no rows;
+PROC SQL;
+	CREATE TABLE work.new_score_data 
+	LIKE work.score_data;
+	
+	DESCRIBE table new_score_data;
+QUIT;
+	
+	
+*Copy an entire table;
+PROC SQL;
+	TITLE 'Copying an Entire Table';
+	CREATE TABLE score_data1 as
+		SELECT * FROM score_data;
+QUIT;
+
+PROC PRINT data=work.score_data1;
+	TITLE 'Copying an Entire Table';
+RUN;
+
+
+*Can also use dataset options;
+PROC SQL;
+	TITLE 'Dropped Column using SAS Dataset Options';
+	CREATE TABLE score_data2 as
+		SELECT * FROM score_data (drop=score1);
+QUIT;
+
+
+PROC PRINT data=work.score_data2;
+	TITLE 'Dropped Column using SAS Dataset Options';
+RUN;
+
+
+
+*Lecture 45: Insert Rows into Tables using Insert Statement with the SET Clause;
+PROC IMPORT datafile='/home/u45038867/Udemy-AdvancedSAS/Data/score_data_miss_birthdate.xlsx'
+	DBMS=xlsx
+	out=score_data
+	REPLACE;
+RUN;
+
+PROC SQL;
+	CREATE TABLE new_score_data
+		LIKE score_data;
+QUIT;
+
+*Inserting two rows into blank table;
+PROC SQL;
+	TITLE 'Inserting values with the SET statement';
+	INSERT INTO new_score_data
+		SET name='David',
+			gender = 'm',
+			score1=78
+		SET name='Tod',
+			birthdate='03DEC2007'd,
+			gender='m';
+	
+/*Printing table 	 */
+	SELECT * FROM new_score_data;
+QUIT;
+
+
+
+
+*Lecture 45: Insert Rows into Tables using Insert Statement with the VALUES Clause;
+
+PROC IMPORT datafile='/home/u45038867/Udemy-AdvancedSAS/Data/score_data_miss_birthdate.xlsx'
+	DBMS=xlsx
+	out=score_data
+	REPLACE;
+RUN;
+
+PROC SQL;
+	CREATE TABLE new_score_data
+		LIKE score_data;
+QUIT;
+
+
+PROC SQL;
+	TITLE 'Inserting rows with the VALUES Clause';
+	INSERT into new_score_data
+		VALUES('Sara', 78,. , 75, 'f', '07DEC2006'd)
+		VALUES('Tina', 69,89 ,. , 'f', '012DEC2006'd)
+		VALUES('David', 90, 92, 97, 'm', '01SEP2006'd);
+		
+/*Printing table*/
+	SELECT name, score1, score2, score3, gender, birthdate format=date10.
+		FROM new_score_data;
+QUIT;
+
