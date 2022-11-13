@@ -1,0 +1,92 @@
+/*Udemy Chapter 4 Coding Exercise
+
+	Combining Queries with Set Operators
+*/
+
+
+*Use the Score_Month1.xlsx and Score_Month2.xlsx data sets and 
+see if the set operations match your expectations;
+
+
+****************************************************************
+* Reading in an printing data before performing set operations *
+****************************************************************;
+PROC IMPORT datafile='/home/u45038867/Udemy-AdvancedSAS/Data/score_month1.xlsx'
+	DBMS=xlsx
+	OUT=work.jan
+	REPLACE;
+RUN;
+
+PROC IMPORT datafile='/home/u45038867/Udemy-AdvancedSAS/Data/score_month2.xlsx'
+	DBMS=xlsx
+	OUT=work.feb
+	REPLACE;
+RUN;
+
+PROC PRINT data=work.jan;
+	TITLE 'Month 1 (January) dataset';
+RUN;
+
+PROC PRINT data=work.feb;
+	TITLE 'Month 2 (February) dataset';
+RUN;
+
+
+******************
+* UNION Operator *
+******************;
+TITLE 'UNION OPERATOR';
+PROC SQL;
+	SELECT * FROM work.jan
+	UNION
+	SELECT * FROM work.feb;
+QUIT;
+
+
+
+******************
+* EXCEPT Operator *
+******************;
+TITLE 'EXCEPT Operator';
+PROC SQL;
+	SELECT * FROM work.jan
+	EXCEPT
+	SELECT * FROM work.feb;
+QUIT;
+
+
+
+*******************
+* EXCEPT Operator *
+*******************;
+TITLE 'INTERSECT Operator';
+TITLE2 'No rows are the same in both tables';
+PROC SQL;
+	SELECT * FROM work.jan
+	INTERSECT
+	SELECT * FROM work.feb;
+QUIT;
+
+
+
+************************
+* OUTER UNION Operator *
+************************;
+TITLE 'OUTER UNION Operator';
+PROC SQL;
+	SELECT * FROM work.jan
+	OUTER UNION
+	SELECT * FROM work.feb;
+QUIT;
+
+
+
+******************************************
+* OUTER UNION Operator with CORR Keyword *
+******************************************;
+TITLE 'OUTER UNION Operator with CORR Keyword';
+PROC SQL;
+	SELECT * FROM work.jan
+	OUTER UNION CORR
+	SELECT * FROM work.feb;
+QUIT;
