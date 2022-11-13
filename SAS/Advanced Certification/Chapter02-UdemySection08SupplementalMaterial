@@ -1,4 +1,9 @@
-/*Udemy Notes on Creating and Updating Tables and Views  */
+/*Udemy Notes on Creating and Updating Tables and Views  
+
+These examples are from section 8 of the Udemy course. The Udemy coures doesn't follow the same ordering of topics as the 
+Official prep guide and offers an additional covering of the topics sometimes with better examples
+
+*/
 
 *Lecture 42: CREATE TABLE Statement;
 
