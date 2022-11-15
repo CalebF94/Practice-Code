@@ -1,9 +1,4 @@
-/*Udemy Notes on Creating and Updating Tables and Views  
-
-These examples are from section 8 of the Udemy course. The Udemy coures doesn't follow the same ordering of topics as the 
-Official prep guide and offers an additional covering of the topics sometimes with better examples
-
-*/
+/*Udemy Notes on Creating and Updating Tables and Views  */
 
 *Lecture 42: CREATE TABLE Statement;
 
@@ -133,3 +128,239 @@ PROC SQL;
 		FROM new_score_data;
 QUIT;
 
+
+
+
+*Lecture 47: Insert Rows into tables using insert statement with a query;
+
+PROC IMPORT datafile='/home/u45038867/Udemy-AdvancedSAS/Data/score_data_miss_birthdate.xlsx'
+	DBMS=xlsx
+	out=score_data
+	REPLACE;
+RUN;
+
+PROC SQL;
+	CREATE TABLE new_score_data
+		LIKE score_data;
+QUIT;
+
+PROC SQL;
+	INSERT into new_score_data
+	SELECT * from score_data;
+QUIT;
+
+
+*inserting a subset of columns;
+
+PROC SQL;
+	CREATE TABLE new_score_data
+		LIKE score_data;
+QUIT;
+
+PROC SQL;
+	INSERT INTO new_score_data (Name, gender, birthdate)
+	SELECT Name, gender, birthdate
+		FROM score_data;
+		
+	/*Printing query*/
+	SELECT name format=$10., gender, birthdate format=date8.
+		FROM new_Score_data;
+QUIT;
+	
+
+
+*Lecture 48: Update All Rows with the Same Expression using UPDATE Statement;
+
+PROC IMPORT datafile='/home/u45038867/Udemy-AdvancedSAS/Data/score_data_miss_birthdate.xlsx'
+	DBMS=xlsx
+	out=score_data
+	REPLACE;
+RUN;
+
+PROC SQL;
+	CREATE TABLE new_score_data
+		LIKE score_data;
+		
+	INSERT INTO new_score_data
+		SELECT * FROM score_data;
+QUIT;
+
+PROC SQL;
+	UPDATE new_score_data
+		SET score1=score1*1.1
+		WHERE score1 < 85;
+		
+	/*PRinting updated values */
+	TITLE 'Updated Score1 Values for Score1 <85';
+	SELECT name format=$10.,
+		   gender,
+		   score1 format=2.
+		FROM new_score_data;
+		
+	/*Printing original values*/
+	TITLE 'Original Score1 Values';
+	SELECT name format=$10.,
+		   gender,
+		   score1 format=2.
+		FROM score_data;
+QUIT;
+
+*Lecture 49: Update all rows with different Expressions using Update Statement;
+
+PROC SQL;
+	CREATE TABLE new_score_data
+		LIKE score_data;
+		
+	INSERT INTO new_score_data
+		SELECT * FROM score_data;
+QUIT;
+
+PROC SQL;
+	UPDATE new_score_data
+		SET score1=score1*1.1
+		WHERE score1 <=60;
+	UPDATE new_score_data
+		SET score1=score1*1.05
+		WHERE 60 <score1 <70;
+		
+	TITLE "PRintig updated table";
+	SELECT name format=$10.,
+		   gender,
+		   score1 format=2.
+		FROM new_score_data;
+		
+	TITLE 'Original Score1 Values';
+	SELECT name format=$10.,
+		   gender,
+		   score1 format=2.
+		FROM score_data;
+QUIT;
+
+
+*Same result can be achieved using Case Expression;
+PROC SQL;
+	CREATE TABLE new_score_data
+		LIKE score_data;
+		
+	INSERT INTO new_score_data
+		SELECT * FROM score_data;
+QUIT;
+
+PROC SQL;
+	UPDATE new_score_data
+		SET score1=score1 *
+		CASE WHEN score1 <=60 THEN 1.1
+			 WHEN 60 <=score1<= 70 then 1.05
+			 ELSE 1
+		END;
+	
+	TITLE "PRintig updated table";
+	SELECT name format=$10.,
+		   gender,
+		   score1 format=2.
+		FROM new_score_data;
+		
+	TITLE 'Original Score1 Values';
+	SELECT name format=$10.,
+		   gender,
+		   score1 format=2.
+		FROM score_data;
+QUIT;
+	
+
+*Lecture 50: Delete Rows with the DELETE statement;
+PROC SQL;
+	CREATE TABLE new_score_data
+		LIKE score_data;
+		
+	INSERT INTO new_score_data
+		SELECT * FROM score_data;
+QUIT;
+
+
+PROC SQL;
+	DELETE FROM new_score_data
+	WHERE gender='f';
+	
+	SELECT * FROM new_score_data;
+QUIT;
+
+
+
+
+
+*Lecture 51: Alter columns with the Alter Table statement: Add a column;
+
+PROC IMPORT datafile='/home/u45038867/Udemy-AdvancedSAS/Data/score_data_miss_birthdate.xlsx'
+	DBMS=xlsx
+	out=score_data
+	REPLACE;
+RUN;
+
+
+PROC SQL;
+	CREATE TABLE new_score_data LIKE score_data;
+	
+	INSERT INTO new_score_data
+	SELECT * FROM score_data
+		WHERE gender='m';
+QUIT;
+
+* add a new column without data values;
+PROC SQL;
+	ALTER TABLE new_score_data
+		add score123_mean num label='Avg of Scores' format=4.1;
+		
+	TITLE 'Adding Score123_mean';
+	SELECT *
+		FROM new_score_data;
+QUIT;
+
+
+*Add data values to the created column;
+PROC SQL;
+	UPDATE new_score_data
+		SET score123_mean = MEAN(score1, score2, score3);
+		
+	SELECT * FROM new_score_data;
+QUIT;
+
+
+*Use arithmetic expression to accomplish same thing in a single step;
+PROC SQL;
+	CREATE TABLE new_score_data as
+		SELECT *, mean(score1, score2, score3) as score123_mean
+			  		label='avg of Scores'
+			  		format=4.1
+			FROM score_data
+			WHERE gender='m';
+			
+			
+	SELECT * FROM new_score_data;
+QUIT;
+
+
+
+*Lecture 52: Modify columns using the MODIFY statement;
+PROC SQL;
+	CREATE TABLE new_score_data LIKE score_data;
+	INSERT INTO new_score_data
+		SELECT * from score_data
+			WHERE gender='m';
+QUIT;
+
+PROC SQL;
+	ALTER TABLE new_score_data
+		MODIFY birthdate label = 'birth_date' format=date8.;
+		
+	SELECT * FROM new_score_data;
+QUIT;
+
+
+*Dropping columns from a table;
+PROC SQL;
+	ALTER TABLE new_score_data
+		DROP score1;
+	
+	SELECT * FROM new_score_data;
+QUIT;
