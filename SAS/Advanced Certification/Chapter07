@@ -1,1 +1,78 @@
-hold
+
+/*
+Chapter 7: Creating and Using Macro Variables
+
+	Topics Covered include:
+		• Introducing Macro Variables
+		• The SAS Macro Facility
+		• Using Macro Variables
+		• Troubleshooting Macro Variable References
+		• Delimiting Macro Variable References
+*/
+
+LIBNAME certadv '/home/u45038867/certadv';
+
+
+/******************************
+* Introducing Macro Variables *
+*******************************/
+
+*declaring a macro variable;
+%let year=2012;
+
+*Inserts 2012 everywhere there is an &year;
+TITLE "Employees Hired in &year";
+DATA work.emp&year;
+	SET certadv.empdata;
+	if year(HireDate)=&year;
+RUN;
+
+PROC PRINT data=work.emp&year;
+RUN;
+
+
+
+/*************************
+* The SAS Macro Facility *
+**************************/
+*No examples given;
+
+/*************************
+* Using Macro Variables  *
+**************************/
+
+*Inputting system information into program;
+footnote1 "Created &systime &sysday, &sysdate9";
+TITLE 'MPG City Over 25';
+PROC PRINT data=sashelp.cars (OBS=5);
+	VAR Make model type mpg_city mpg_highway msrp;
+	WHERE MPG_city>25;
+RUN;
+
+
+
+/********************************************
+* Troubleshooting Macro Variable References *
+*********************************************/
+
+*Using the SYMBOLGEN Option;
+OPTIONS SYMBOLGEN; *Turning on the global option;
+
+%let CarType=Wagon;
+PROC PRINT data=sashelp.cars;
+	VAR make model type MSRP;
+	WHERE type="&CarType";
+RUN;
+
+OPTIONS NOSYMBOLGEN;*Turning off option;
+
+*Using the %PUT Statement to print message to log;
+%PUT The value of the macro variable CarType in: &cartype;
+%PUT &=CarType;
+
+*%PUT option example;
+%PUT _ALL_;
+
+
+*Using the %SYMDEL statement to remove a macro variable;
+%SYMDEL CarType;
