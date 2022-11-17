@@ -1,4 +1,3 @@
-
 /*
 Chapter 7: Creating and Using Macro Variables
 
@@ -76,3 +75,23 @@ OPTIONS NOSYMBOLGEN;*Turning off option;
 
 *Using the %SYMDEL statement to remove a macro variable;
 %SYMDEL CarType;
+
+
+
+/********************************************
+* Delimiting Macro Variable References      *
+*********************************************/
+%LET CarType=Wagon;
+%LET lib=sashelp;
+
+TITLE "&CarType.s from the &lib..CARS Table";
+*1st period ends reference, 2nd period gets 'printed';
+PROC FREQ data=&lib..cars;
+	tables origin / nocum;
+	WHERE type="&CarType";
+RUN;
+
+PROC PRINT data=&lib..cars;
+	VAR make model type msrp;
+	WHERE type="&CarType";
+RUN;
