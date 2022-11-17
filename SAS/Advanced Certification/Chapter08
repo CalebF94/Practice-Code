@@ -1,0 +1,49 @@
+/*
+Chapter 8: Storing and Processing Text
+
+	Topics Covered:
+		- Processing Text with Macro Functions
+		- Using SAS Macro Function to Manipulate Character Strings
+		- Using SAS Functions with Macro Variables
+		- Using SAS Macro Functions to Mask Special Characters
+		- Creating Macro Variables during PROC SQL Step Execution
+		- Creating Macro Variables during DATA Step Execution
+		- Referencing Macro Variables Indirectly
+		- Quiz
+ */
+
+LIBNAME certadv '/home/u45038867/certadv';
+
+/***************************************
+* Processing Text with Macro Variables *
+****************************************/
+
+*No Code examples used;
+
+
+
+/***********************************************************
+* Using SAS Macro Function to Manipulate Character Strings *
+************************************************************/
+
+/* The %UPCASE function  */
+
+*defining macro var. Notice lowercase;
+%LET paidval=n;
+TITLE "Uncollected Fees for Each Course";
+
+PROC MEANS data=certadv.all SUM MAXDEC=0;
+	*in Quotes;
+	WHERE paid="%upcase(&paidval)";
+	VAR fee;
+	CLASS course_title;
+RUN;
+
+
+
+/* The %SUBSTR function */
+PROC PRINT data=certadv.schedule;
+	WHERE begin_date BETWEEN "30%SUBSTR(&SYSDATE9, 3)"d and "&SYSDATE9"d;
+	TITLE "All Courses Held So Far This Month";
+	TITLE2 "(as of &sysdate9)";
+RUN;
