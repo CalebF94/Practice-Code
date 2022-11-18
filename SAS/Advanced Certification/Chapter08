@@ -47,3 +47,55 @@ PROC PRINT data=certadv.schedule;
 	TITLE "All Courses Held So Far This Month";
 	TITLE2 "(as of &sysdate9)";
 RUN;
+
+
+/* The %INDEX Function */
+%LET a = a very long value;
+%LET b=%INDEX(&a, v);*returns the position of the first occurance of v;
+
+%PUT The Character v appears at position &b;
+
+/* The %SCAN Function */
+%LET a=one:two-three four;
+
+%PUT First word is %scan(&a, 1);*uses default delims, 3 words total;
+%PUT Second word is %scan(&a, 2, :-);*uses : and - as delimiters;
+%PUT Last word is %scan(&a, -1);*returns the last word;
+
+
+
+/*******************************************
+* Using SAS Functions with Macro Variables *
+********************************************/
+
+/* The %sysfunc Function  */
+%LET string = william SMITH;
+%PUT %sysfunc(propcase(&string));
+
+
+/* The %EVAL Function */
+%LET a=1+2;
+%LET b=10*3;
+%LET c=13/3;
+
+%LET eval_a=%eval(&a);
+%LET eval_b=%eval(&b);
+%LET eval_c=%eval(&c);
+
+%PUT &a is &eval_a;
+%PUT &b is &eval_b;
+%PUT &c is &eval_c;*Only the integer portion is returned;
+
+
+/* The %SYSEVALF Function */
+
+%macro figureit(a, b);
+	%LET y=%sysevalf(&a+&b);
+	%PUT The result with SYSEVAL is: &y;
+	%PUT The BOOLEAN value is: %sysevalf(&a +&b, boolean);
+	%PUT The CEIL value is: %sysevalf(&a +&b, ceil);
+	%PUT The FLOOR value is: %sysevalf(&a +&b, floor);
+	%PUT The INTEGER value is: %sysevalf(&a +&b, int);
+%mend figureit;
+
+%figureit(100, 1.597)
