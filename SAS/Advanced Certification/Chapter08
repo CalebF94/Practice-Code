@@ -187,4 +187,210 @@ PROC PRINT data=sashelp.cars;
 RUN;
 
 
+/**********************************************************
+* Creating Macro Variables during PROC SQL Step Execution *
+***********************************************************/
+*Example with INTO and NOPRINT statements;
+PROC SQL NOPRINT;
+	SELECT SUM(fee) format=dollar10.
+		INTO :totalfee trimmed
+		FROM certadv.all;
+QUIT;
 
+PROC MEANS data=certadv.all SUM MAXDEC=0;
+	CLASS course_title;
+	var fee;
+	TITLE "Grand Total for All Courses Is &totalfee";
+RUN;
+
+
+*Example: Creating Variables with the INTO Clause;
+PROC SQL NOPRINT;
+	SELECT course_code, location, begin_date format=mmddyy10.
+		INTO :crsid1-, 
+			 :place1-,
+			 :date1-
+		FROM certadv.schedule
+		WHERE YEAR(begin_date)=2019
+		ORDER BY begin_date;
+QUIT;
+
+*Displaying the number of rows from SQL Query;
+%PUT There are &SQLOBS courses in 2019;
+
+*Displaying the names of all user created macro variables;
+%PUT _user_;
+
+
+*Creating a Delimited List of Values;
+PROC SQL NOPRINT;
+	SELECT DISTINCT location
+		INTO :sites separated by ', ' /* creates a list of values */
+		FROM certadv.schedule;
+QUIT;
+
+TITLE1 'Total Revenue from Course Sites:';
+TITLE2 Course sites are: &sites;
+PROC MEANS data=certadv.all SUM maxdec=0;
+	VAR fee;
+RUN;
+
+
+
+/******************************************************
+* Creating Macro Variables during DATA Step Execution *
+*******************************************************/
+*Using the CALL SYMPUTX Routine;
+%LET crsnum=3;
+
+DATA revenue;
+	SET certadv.all end=final;
+	where course_number=&crsnum;
+	
+	*Counting total number of students;
+	total+1;
+	
+	*Counting number of students who have paid fee;
+	IF paid='Y' then paidup+1;
+	
+	IF final then do;
+		*Creating mcro vars if end of dataset;
+		CALL SYMPUTX('crsname', course_title);
+		CALL SYMPUTX('date', put(begin_date, mmddyy10.));
+		CALL symputx('due', put(fee*(total-paidup), dollar8.));
+	END;
+RUN;
+
+PROC PRINT data=revenue;
+	VAR student_name student_company paid;
+	TITLE "Fee Status for &crsname (#&crsnum) Held &date";
+	FOOTNOTE "Note: &due in Unpaid Fees";
+RUN;
+
+
+*Using CALL SYMPUTX Routine with Literal Strings;
+OPTIONS SYMBOLGEN PAGESIZE=30;
+
+%LET crsnum=3;
+
+DATA revenue;
+	SET certadv.all end=final;
+	WHERE course_number=&crsnum;
+	total+1;
+	
+	IF paid='Y' then paidup+1;
+	IF final then DO;
+		IF paidup<total then DO;
+			CALL SYMPUTX('foot', 'Some Fees are Unpaid');
+		END;
+		ELSE DO;
+			CALL SYMPUTX('foot', 'All students have paid');
+		END;
+	END;
+RUN;
+
+
+PROC PRINT data=work.revenue;
+	VAR student_name student_company paid;
+	TITLE "Payment Status for Course &crsnum";
+	FOOTNOTE "&foot";
+RUN;
+
+
+*Example: Using the CALL SYMPUTX Routine with a DATA Step Variable;
+%LET crsnum=3;
+DATA revenue;
+	SET certadv.all end=final;
+	WHERE course_number=&crsnum;
+	total+1;
+	
+	IF paid='Y' THEN paidup+1;
+	
+	IF final THEN DO;
+		CALL SYMPUTX('numpaid', paidup);
+		CALL SYMPUTX('numstu', total);
+		CALL SYMPUTX('crsname', course_title);
+		CALL SYMPUTX('percpaid', put(paidup/total, percent5.2));
+	END;
+RUN;
+
+PROC PRINT data=revenue noobs;
+	VAR student_name student_company paid;
+	TITLE "Fee Status for &crsname (#crsnum)";
+	FOOTNOTE "Note: &numpaid Paid out of &numstu (&percpaid)";
+RUN;
+
+
+*Creating Multiple Macro Variables with CALL SYMPUTX;
+DATA _null_;
+	SET certadv.courses;
+	*both arguments are column names in the courses dataset;
+	*They values change for each iteration of the DATA step;
+	CALL symputx(course_code, course_title);
+RUN;
+
+%PUT _user_;
+
+
+*Using the PUT Function;
+%LET crsnum=3;
+
+DATA revenue;
+	SET certadv.all end=final;
+	where course_number=&crsnum;
+	
+	*Counting total number of students;
+	total+1;
+	
+	*Counting number of students who have paid fee;
+	IF paid='Y' then paidup+1;
+	
+	IF final then do;
+		*Creating mcro vars if end of dataset;
+		CALL SYMPUTX('crsname', course_title);
+		CALL SYMPUTX('date', put(begin_date, mmddyy10.));
+		CALL symputx('due', put(fee*(total-paidup), dollar8.));
+	END;
+RUN;
+
+PROC PRINT data=revenue;
+	VAR student_name student_company paid;
+	TITLE "Fee Status for &crsname (#&crsnum) Held &date";
+	FOOTNOTE "Note: &due in Unpaid Fees";
+RUN;
+
+
+
+
+/*****************************************
+* Referencing Macro Variables Indirectly *
+******************************************/
+DATA _null_;
+	SET certadv.courses;
+	CALL SYMPUTX(course_code, course_title);
+RUN;
+
+%LET crsid=C002;
+
+PROC PRINT data=certadv.schedule noobs label;
+	WHERE course_code="&crsid";
+	VAR location begin_date teacher;
+	TITLE1 "Schedule for &&&crsid";
+
+
+
+*Creating a Series of Macro Variables;
+OPTIONS SYMBOLGEN;
+DATA _null_;
+	SET certadv.schedule;
+	call SYMPUTX(CATS('teach', course_number), teacher);
+RUN;
+
+
+%LET crs=3;
+PROC PRINT data=certadv.register noobs;
+	WHERE course_number=&crs;
+	VAR student_name paid;
+	TITLE1 "Roster for Course &crs";
+	TITLE2 "Taught by &&teach&crs";
+RUN;
