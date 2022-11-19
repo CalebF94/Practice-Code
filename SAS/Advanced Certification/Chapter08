@@ -98,4 +98,93 @@ RUN;
 	%PUT The INTEGER value is: %sysevalf(&a +&b, int);
 %mend figureit;
 
-%figureit(100, 1.597)
+%figureit(100, 1.597);
+
+/********************************************************
+*  Using SAS Macro Functions to Mask Special Characters *
+*********************************************************/
+
+*The %STR function;
+OPTIONS symbolgen;
+*Since this a paired token, need to precede token 
+with a % within %STR;
+%let text=%STR(Joan%'s Report);
+
+PROC PRINT data=certadv.courses;
+	WHERE days > 3;
+	TITLE "&text";
+RUN;
+
+
+*Using the %NRSTR function;
+%LET period = %STR(May&June);
+%PUT Period resolves to &period;
+
+%LET period =%NRSTR(May&Jun);
+%PUT Period resolves to &period;
+
+
+*Using the %SUPERQ Function;
+data _null_;
+	call symputx('mv1', 'Smith&Jones');
+	call symputx('mv2', '%macro abc;');
+RUN;
+
+%LET testmv1=%superq(mv1);
+%LET testmv2=%superq(mv2);
+%PUT Macro variable TESTMV1 is &testmv1;
+%PUT Macro variable TESTMV@ is &testmv2;
+
+
+*Using the %BQUOTE Function;
+data _null_;
+	call symputx('text', "Sally's Seashell Store at Old Towne's Beach");
+RUN;
+
+data _null_;
+	PUT "%bquote(&text)";
+RUN;
+
+
+*Using the %QUPCASE Function;
+%LET a=%NRSTR(Address&Name);
+%PUT QUPCASE produces: %QUPCASE(&a);
+
+
+*Using the %QSUBSTR function;
+%LET a=one;
+%LET b=two;
+%LET c=%NRSTR(&a &b);
+
+%PUT C: &c;
+%PUT With SUBSTR: %SUBSTR(&c, 1, 2);
+%PUT With QSUBSTR: %QSUBSTR(&c, 1, 2);
+
+
+*Using the %QSCAN Function;
+%macro a;
+	aaaaaa
+%mend a;
+
+%macro b;
+	bbbbbb
+%mend b;
+
+%macro c;
+	cccccc
+%mend c;
+
+%LET x=%NRSTR(%a*%b*%c);
+%PUT X: &x;
+%PUT The third word in X, with SCAN: %scan(&x,3,*);
+%PUT The third word in X, with QSCAN: %qscan(&x,3,*);
+
+
+*Using the %QSYSFUNC Function;
+TITLE "Report Produced on %SYSFUNC(left(%QSYSFUNC(today(), worddate.)))";
+
+PROC PRINT data=sashelp.cars;
+RUN;
+
+
+
