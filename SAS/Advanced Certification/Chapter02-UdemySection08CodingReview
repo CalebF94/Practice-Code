@@ -1,1 +1,57 @@
+/* Udemy section 08 Coding Exercise  */
 
+FILENAME input '/home/u45038867/Udemy-AdvancedSAS/Data/sale_by_state_miss.xlsx';
+
+
+* Importing data from sale_by_state_miss.xlsx;
+PROC IMPORT datafile=input
+	DBMS=XLSX
+	REPLACE
+	OUT=work.sale0;
+RUN;
+
+PROC PRINT data=work.state;
+	TITLE "Import dataset";
+RUN;
+
+
+* Create new table sale1 from Sale0;
+PROC SQL NOPRINT;
+	CREATE TABLE Sale1 AS
+		SELECT * 
+			FROM Sale0;
+QUIT;
+
+PROC PRINT data=work.Sale1;
+	TITLE 'Sale1 dataset';
+	FOOTNOTE 'Copied from Sale0 dataset';
+RUN;
+
+
+
+* Use ALTER TABLE statement to add a new column `sale_mean`;
+PROC SQL;
+	ALTER TABLE work.sale1
+		ADD sale_mean num format=dollar7.2;
+QUIT;
+
+PROC PRINT data=work.sale1;
+	TITLE 'Sale1 with additional column sale_mean';
+RUN;
+
+
+* Use the Update statement to update the values of sale_mean as 
+	mean(sale1, sale2, sale3);
+PROC SQL;
+	UPDATE work.sale1
+		SET sale_mean = mean(sale1, sale2, sale3);
+QUIT;
+
+PROC PRINT data=work.sale1;
+	TITLE 'Sale1 Dataset with sale_mean column updated';
+	FOOTNOTE 'sale_mean calculated as mean(sale1, sale2, sale3)';
+RUN;
+	
+	
+	
+	
