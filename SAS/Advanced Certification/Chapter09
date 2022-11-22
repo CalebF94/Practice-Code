@@ -1,0 +1,105 @@
+/*
+Chapter 9: Working with Macro Programs
+
+	Topics:
+		- Defining and Calling a Macro
+		- Passing Information into a Macro Using Parameters
+		- Controlling Variable Scope
+		- Debugging Macros
+		- Conditional Processing
+		- Iterative Processiong
+		- Quiz
+*/
+
+LIBNAME certadv '/home/u45038867/certadv';
+
+*Creating temp data to populate &syslast macro variable;
+DATA work.cars_msrp;
+	set sashelp.cars;
+RUN;
+
+
+
+/*******************************
+* Defining and Calling a Macro *
+********************************/
+
+%MACRO printit; *printit is the name of the macro;
+	PROC PRINT data=&syslast (obs=5);
+		TITLE "Listing of &syslast dataset";
+	RUN;
+%MEND printit; *adding the macro name at the end makes code more readable;
+
+%printit;
+
+
+
+*Using the MCOMPILENOTE= option;
+
+OPTIONS MCOMPILENOTE=all;*setting the global option;
+%MACRO printit;
+	PROC PRINT data=&syslast (obs=5);
+		TITLE "Listing of &syslast dataset";
+	RUN;
+%MEND printit;
+
+OPTIONS MCOMPILENOTE=NONE;*Resetting option to default;
+
+
+* Calling a macro;
+PROC SORT data=sashelp.cars out=cars_mpg;
+	by MPG_City;
+RUN;
+
+*Calling the print it macro;
+%printit
+
+
+
+
+/****************************************************
+* Passing Information into a Macro Using Parameters *
+*****************************************************/
+*Using Positional Parameters to Create Macro Variables;
+*Defining a macro with two positional arguments: dsn and vars;
+%MACRO printdsn(dsn, vars);
+	PROC PRINT data=&dsn;
+		VAR &vars;
+		TITLE "Listing of %upcase(&dsn) data set";
+	RUN;
+%MEND;
+
+*notice how multiple 'vars' are passed in;
+%printdsn(certadv.courses, course_code course_title days)
+
+
+*Using Keyword Parameters to Create Macro Variables;
+
+%MACRO printdsn(dsn = certadv.courses,
+				vars= course_code course_title days);
+	PROC PRINT data=&dsn;
+		VAR &vars;
+		TITLE "Listing of %upcase(&dsn) data set";
+	RUN;
+	
+%MEND;
+
+*Calling the printdsn() macro with default values;
+%printdsn()
+
+*Calling the printdsn() macro with different values;
+%printdsn(vars=teacher course_code begin_date, dsn=certadv.schedule)
+
+
+
+*Using mixed parameters to create macro variables;
+%MACRO PRINTDSN(dsn, vars=course_title course_code days);
+	PROC PRINT data=&dsn;
+		VAR &vars;
+		TITLE "Listing of %UPCASE(&dsn) data set";
+	RUN;
+
+%MEND;
+
+*schedule is a positional arg, vars is a keyword argument;
+%PRINTDSN(certadv.schedule, vars=teacher location begin_date)
