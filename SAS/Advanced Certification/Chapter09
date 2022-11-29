@@ -103,3 +103,118 @@ RUN;
 
 *schedule is a positional arg, vars is a keyword argument;
 %PRINTDSN(certadv.schedule, vars=teacher location begin_date)
+
+
+
+/*****************************
+* Controlling Variable Scope *
+******************************/
+
+/* Using the %GLOBAL Statement */
+%MACRO PRINTDSN;
+	*Creating null macro variables;
+	%GLOBAL dsn vars;
+	
+	*Assigning values to the macro variables;
+	%LET dsn=certadv.courses;
+	%LET vars = course_title course_code days;
+
+	PROC PRINT data=&dsn;
+		var &vars;
+		TITLE "Listing of &dsn dataset";
+	RUN;
+%MEND PRINTDSN;
+
+%PRINTDSN
+
+
+/*Using the %LOCAL Statement*/
+%LET dsn=certadv.courses;
+
+%MACRO printdsn;
+	%LOCAL dsn;
+	%let dsn=certadv.register;
+	%put The value of DSN inside Printdsn is &dsn;
+%MEND;
+
+%PRINTDSN
+%PUT the value of DSN outside PRINTDSN is &dsn;
+	
+
+
+
+/*******************************
+* Debugging Macro              *
+********************************/
+
+/*Using the MPRINT Option*/
+
+*Making a macro;
+%MACRO prtlast;
+	PROC PRINT data=&syslast (obs=5);
+		TITLE "Listing of &syslast data set";
+	RUN;
+%MEND prtlast;
+
+*creating a dataset to populatethe syslast varible;
+DATA sales;
+	price_code=1;
+RUN;
+
+*Turning on the MPRINT option and running the macro;
+OPTIONS MPRINT;
+%prtlast;
+
+
+/*******************************
+* Conditional Processing       *
+********************************/
+
+
+/*Example using %IF-%THEN, %DO-%END with IF-THEN statements*/
+DATA work.sports;
+	SET sashelp.cars;
+	WHERE Type="Sports";
+	AvgMPG=mean(MPG_city, MPG_Highway);
+RUN;
+
+%IF &syserr ne 0 %THEN 
+	%DO;
+		%PUT ERROR: The Rest of the Program will not execute;
+	%END;
+%ELSE 
+	%DO;
+		TITLE "Sports Cars";
+		PROC PRINT data=work.sports noobs;
+			VAR Make Model AvgMPG MSRP;
+		RUN;
+	%END;
+
+/*Example: Controlling Text Copied to the Input Stack*/
+%MACRO CHOICE(status);
+	DATA fees;
+		SET certadv.all;
+		%IF &status=PAID %THEN 
+			%DO;
+				where paid='Y';
+				keep student_name course_code begin_Date totalfee;
+			%END;
+		%ELSE 
+			%DO;
+				WHERE paid='N';
+				KEEP student_name course_code begin_date totalfee latechg;
+				latechg=fee*.10;
+			%END;
+			
+		IF Location='Boston' THEN totalfee=fee*1.06;
+		ELSE IF location='Seattle' THEN totalfee=fee*1.025;
+		ELSE IF location='Dallas' THEN totalfee=fee*1.05;
+	RUN;
+%MEND CHOICE;
+
+/*Turning on options to display messages in SAS log*/
+OPTIONS mprint mlogic;
+%CHOICE(PAID)
+
+
+%CHOICE(OWED)
