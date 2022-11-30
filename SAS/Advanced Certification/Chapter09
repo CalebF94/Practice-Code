@@ -218,3 +218,50 @@ OPTIONS mprint mlogic;
 
 
 %CHOICE(OWED)
+
+
+/*The MLOGIC System Option*/;
+DATA SALES;
+	price_code=1;
+RUN;
+
+OPTIONS NOMPRINT MLOGIC;
+%prtlast
+
+
+
+/***********************
+* Iterative Processing *
+************************/;
+
+OPTIONS NOMLOGIC;
+PROC SQL noprint;
+	SELECT teacher
+		/* Creating a Series of Macro variables*/
+		INTO :teach1-
+		FROM certadv.schedule;
+QUIT;
+
+
+%MACRO PUTLOOP;
+	%LOCAL i;
+	%DO i=1 %to &sqlobs %by 1;
+		%put TEACH&i is &&teach&i;
+	%END;
+	
+%MEND;
+
+%putloop
+
+
+*Creating a Roster for each class;
+%MACRO rosters;
+	%DO class=1 %to 18;
+		TITLE "Roster for Class #&class";
+		PROC PRINT data=certadv.all;
+			where Course_Number=&class;
+		RUN;
+	%END;
+%MEND;
+
+%rosters
