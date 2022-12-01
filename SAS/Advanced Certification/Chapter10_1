@@ -1,0 +1,28 @@
+/*
+Chapter 10: Advanced Macro Techniques
+	
+	Topics:
+		- Storing Macro Definitions in External Files
+		- Understanding Session Compiled Macros
+		- Using the Autocall Facility
+		- Data-Driven Macro Calls
+		- Quiz
+*/
+
+LIBNAME certadv '/home/u45038867/certadv';
+
+/**********************************************
+* Storing Macro Definitions in External Files *
+***********************************************/
+
+*Including the file that contains the prtlast macro;
+*source2 option includes the macro definition in the log;
+%INCLUDE '/home/u45038867/certadv/prtlast.sas' /source2;
+
+*Initializing a data set so prtlast macro prints a table;
+PROC SORT data=certadv.courses out=work.bydays;
+	BY days;
+RUN;
+
+%prtlast
+
