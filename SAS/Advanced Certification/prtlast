@@ -1,0 +1,13 @@
+*Contains the macro prtlast that is used chapter 10: Storing macro
+variables in external files;
+
+%MACRO prtlast;
+	%IF &syslast ne _NULL_ %THEN 
+		%DO;
+			PROC PRINT data=&syslast (obs=5);
+				TITLE "Listing of &syslast data set";
+			RUN;
+		%END;
+	%ELSE	
+		%PUT No Data set has been created yet.;
+%MEND;
