@@ -1,0 +1,32 @@
+/*
+Chapter 10: Advanced Macro Techniques
+	
+	Topics:
+		- Storing Macro Definitions in External Files
+		- Understanding Session Compiled Macros
+		- Using the Autocall Facility (THis file)
+		- Data-Driven Macro Calls
+		- Quiz
+*/
+
+LIBNAME certadv '/home/u45038867/certadv';
+
+/**********************************************
+* Using the Auto call facility
+
+This file only addresses the autocall facility.
+Differs from the other chapter 10 file because 
+I can't have the %include statement in order to 
+properly demonstate the autocall facility	 *
+***********************************************/
+
+*Setting up our session to with MAUTOSOURSE and sasautos options;
+OPTIONS MRECALL MAUTOSOURCE SASAUTOS=(sasautos '/home/u45038867/certadv/Programs/myAutoCall');
+
+*Initializing a data set so prtlast macro prints a table;
+PROC SORT data=certadv.courses out=work.bydays;
+	BY days;
+RUN;
+
+%prtlast
+
