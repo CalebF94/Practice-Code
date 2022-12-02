@@ -26,3 +26,30 @@ RUN;
 
 %prtlast
 
+/**************************
+* Data Driven Macro Calls *
+***************************/
+%MACRO DelayReport(empid);
+	TITLE "Flight Delays for Employee &empid";
+	PROC SQL;
+		SELECT DelayCategory, Count(*) as Count
+			FROM 
+			certadv.flightdelays d
+			INNER JOIN
+			certadv.flightschedule s
+		ON s.date=d.date and s.flightnumber=d.flightnumber
+		WHERE empid="&empid"
+		group by DelayCategory;
+	QUIT;
+	TITLE;
+%MEND;
+
+
+*Data driven program using DOSUBL function;
+data _null_;
+	SET certadv.flightcrewnew;
+	rc=dosubl(cats('%DelayReport(', empid, ')'));
+run;
+
+
+
