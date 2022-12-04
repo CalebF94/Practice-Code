@@ -1,0 +1,65 @@
+/*
+Chapter 11: Defining and Processing Arrays
+	
+	Topics:
+		• Defining and Referencing One-Dimensional Arrays
+		• Expanding Your Use of One-Dimensional Arrays
+		• Defining and Referencing Two-Dimensional Arrays
+		• Quiz
+*/
+
+LIBNAME certadv '/home/u45038867/certadv';
+
+/**************************************************
+* Defining and Referencing One-Dimensional Arrays *
+***************************************************/
+data work.highcount;
+	SET certadv.patdata;
+	
+	*defining an array with 5 elements;
+	ARRAY health[5] Weight--BP;
+	
+	*Looping across columns and counting number that are high;
+	*Notice total doesn't reset for each row;
+	DO i=1 TO 5;
+		IF health[i]='High' THEN HighCount+1;
+	END;
+RUN;
+
+PROC PRINT DATA=work.highcount (drop=i);
+	TITLE 'HighCount Dataset';
+RUN;
+
+
+*Example: Using the DIM function in a DO Statement
+THis dataset doesnt' actually exist;
+
+/* data work.sysbp2 (drop=i); */
+/* 	set certadv.sysbp; */
+/* 	 */
+/* 	*array will contain an unknown number of elements; */
+/* 	*All elements will start with 'sbp'; */
+/* 	ARRAY sbparray[*] sbp:; */
+/* 	 */
+/* 	DO i=1 TO DIM(sbparray); */
+/* 		*Replacing an invalid number with null; */
+/* 		IF sbparray[i]=999 THEN sbparray=.; */
+/* 	END; */
+/* RUN; */
+/*  */
+/* PROC PRINT data=work.sysbp2; */
+/* 	TITLE 'the SYSBP2 Dataset'; */
+/* RUN; */
+	
+*Example: Compilation and Execution Phases for Array Processing;
+DATA work.survsalary (drop=i);
+	SET certadv.salary;
+	ARRAY BelowAvgs[4] Salary1-Salary4;
+	DO i=1 to 4;
+		IF BelowAvgS[i] <=51000 then BelowAvg+1;
+	END;
+RUN;
+
+PROC PRINT data=work.survsalary;
+	TITLE 'SurvSalary Dataset';
+RUN;
