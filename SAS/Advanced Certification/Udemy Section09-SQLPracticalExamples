@@ -1,0 +1,168 @@
+/*Udemy Course Section 9: SAS SQL: Practical Examples using PROC SQL  
+
+These examples aren't directly related to Certification examples, but they
+do provide good working examples
+*/
+
+
+%LET home=/home/u45038867/Udemy-AdvancedSAS/Data;
+
+/* 
+Lecture 59: Comparing Old and New Tables
+
+You have two copies of a table. One of the tables has been updated
+You may want to see which rows have been changed
+ */
+
+*Old table, contains more blanks and fewer rows;
+PROC IMPORT DATAFILE='/home/u45038867/Udemy-AdvancedSAS/Data/score_data_miss_birthdate.xlsx'
+	REPLACE
+	DBMS=XLSX
+	OUT=score_data_old;
+RUN;
+
+
+*New table, contains fewer blanks and more rows;
+PROC IMPORT DATAFILE='/home/u45038867/Udemy-AdvancedSAS/Data/score_data_miss_birthdate_new.xlsx'
+	REPLACE
+	DBMS=XLSX
+	OUT=score_data_new;
+RUN;
+
+
+PROC SQL;
+	TITLE 'Rows That Have Been Changed';
+	SELECT * FROM work.score_data_new
+	/*Except will return only the rows from _new that are different from the old table*/
+	EXCEPT
+	SELECT * FROM work.score_data_old;
+		
+	*Printing the tables for reference;
+	TITLE "New Table";
+	SELECT * FROM work.score_data_new;
+	
+	TITLE 'Old Table';
+	SELECT * FROM work.score_data_old;
+QUIT;
+
+
+/*
+Lecture 60: Overlaying Missing Data Values
+
+	You may have multiple copies of tables, some contain missing s for different variables
+or records. You may use the COALESCE function to overlay same columns and return the first
+nonmissing value that is found
+
+This example has two tables containing student information with each table containing 
+different missing values but may be populated in the other table
+We will fill in the missings as much as possible
+*/
+
+PROC IMPORT datafile='/home/u45038867/Udemy-AdvancedSAS/Data/score1_1.xlsx'
+	REPLACE
+	DBMS=xlsx
+	OUT=work.score1_1;
+RUN;
+
+PROC IMPORT datafile='/home/u45038867/Udemy-AdvancedSAS/Data/score1_2.xlsx'
+	REPLACE
+	DBMS=xlsx
+	OUT=work.score1_2;
+RUN;
+
+PROC SQL;
+	TITLE 'Overlaying Missing Data Values';
+	SELECT s1.name,
+		   s1.score1 as score1_s1,
+		   s2.score1 as score1_s2,
+ 		   COALESCE(score1_s1, score1_s2) as gender_final,
+		   
+		   s1.gender as gender_s1,
+		   s2.gender as gender_s2,
+		   COALESCE(gender_s1, gender_s2) as gender_final
+		FROM 
+			work.score1_1 as s1 FULL JOIN work.score1_2 as s2
+		ON
+			s1.name = s2.name;
+QUIT;
+
+
+/*Lecture 61:  Computing Percentages within Subtotals
+
+Computing percent of students waiting in carline and not waiting in carline
+for each class
+*/
+
+*carline is either yes/no, and there are two different classes a/b;
+*Calculating y/n for each class;
+PROC IMPORT DATAFILE="&home/Carline info.xlsx"
+	DBMS=xlsx
+	out=cldata
+	replace;
+RUN;
+
+PROC SQL;
+	TITLE "Percent of Students Waiting in Carline for Each Class";
+	SELECT 
+		DISTINCT cldata2.class as class,
+		cldata.carline as carline,
+		COUNT(cldata.class) as Count,
+		cldata2.subtotal as total,
+		CALCULATED Count/cldata2.subtotal as Percent format=percent8.2
+	FROM 
+		cldata, 
+		(SELECT class, count(class) as Subtotal from cldata GROUP BY class) 
+		as cldata2
+	WHERE 
+		cldata.class=cldata2.class
+	GROUP BY cldata.class, cldata.carline;
+QUIT;
+
+
+*These are the queries that are being joined;
+
+PROC SQL;
+	TITLE 'Subquery';
+	*Counts the number of students in each class;
+	*Used as the denominator in the percent column;
+	SELECT class, count(class) as Subtotal from cldata GROUP BY class;
+QUIT;
+
+PROC SQL;
+	TITLE "cldata";
+	SELECT * FROM cldata;
+QUIT;
+
+
+/* 
+Lecture 62: Counting Exact Duplicate Rows in a Table
+
+Duplicate records often exist in uncleaned data
+
+We perform a GROUP BY using all the columns in the table.
+	- Can use a subset of variables as well
+We Select a variable using the count(*) function
+Filter the rows using a having clause
+*/
+
+*Some rows are duplicated;
+PROC IMPORT datafile = "&home/score_data_id_dups.xlsx"
+	DBMS=xlsx
+	out=dups
+	REPLACE;
+RUN;
+
+PROC SQL;
+	TITLE "Duplicate Rows";
+	SELECT *, COUNT(*) as Count
+	FROM dups
+	GROUP BY name, score1, score2, score3, gender, stu_id
+	HAVING Count>1; *Showing rows that occur multiple times;
+	
+	
+	TITLE "Non-Duplicate Rows";
+	SELECT *, COUNT(*) as Count
+	FROM dups
+	GROUP BY name, score1, score2, score3, gender, stu_id
+	HAVING Count=1; *Showing rows that occur multiple times;	
+QUIT;
