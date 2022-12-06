@@ -63,3 +63,88 @@ RUN;
 PROC PRINT data=work.survsalary;
 	TITLE 'SurvSalary Dataset';
 RUN;
+
+
+*Example: Assigning Initial Values;
+DATA work.report (drop=i);
+	SET certadv.qsales;
+	
+	*Declaring the arrays;
+	ARRAY sale[4] sales1-sales4;
+	ARRAY goal[4] (9000 9300 9600 9900);*Array containing the goal amounts;
+	ARRAY Achieved[4];*Will contain % of goal achieved. names will be Achieved1, Achieved2,...;
+	
+	DO i=1 to 4;
+		Achieved[i]=100*sale[i]/goal[i];
+	END;
+RUN;
+
+PROC PRINT data=work.report noobs;
+RUN;
+
+
+*Example: Rotating Data;
+DATA work.yrsales;
+	SET certadv.qtrsales;
+	ARRAY yr[4] SalesQ1-SalesQ4;
+	
+	DO Quarter=1 to 4;*Quarter will be a column in the output data;
+		Sales=Yr[Quarter];
+		OUTPUT;
+	END;
+RUN;
+
+PROC PRINT data=work.yrsales;
+	TITLE 'Rotated Data';
+	VAR Country Year Quarter Sales;
+RUN;
+
+/**************************************************
+* Defining and Referencing Two-Dimensional Arrays *
+***************************************************/
+*Creating two dimensional array with initial values;
+	
+DATA work.customercoupons;
+
+	*Defining a 3 by 4 temporary array;
+	ARRAY cpnvalue[3,4] _temporary_ (.10, .15, .20, .25,
+									 .30, .40, .10, .15,
+									 .20, .25, .15, .10);
+									 
+	SET certadv.stcoup (keep=CustomerID OrderType Quantity);
+	CouponValue=cpnvalue[OrderType, Quantity];
+	FORMAT CouponValue percent10.;
+RUN;
+
+TITLE 'Coupons for October 2019';
+PROC PRINT data=work.customercoupons;
+RUN;
+	
+	
+* Example: Creating a Two-Dimensional Array to Perform Table Lookup;
+DATA work.diffsales;
+	ARRAY yrsales[2014:2018, 4] _temporary_; *Creating temporary 5 by 4 array;
+	
+	*if first iteration we create the lookup table/array;
+	IF _N_=1 THEN DO Yr=2014 to 2018;
+		SET certadv.us_sales;
+		
+		*Another array that is set to a row/year of the us_sales table;
+		ARRAY qtrsal[4] SalesQ1-SalesQ4;
+		
+		*Setting values of the lookup table/array one qtr at atime;
+		DO Qtr=1 to 4;
+			yrsales[yr, Qtr]=qtrsal[Qtr];
+		END;
+	END;
+
+	SET certadv.us_goals;
+	sales=yrsales[Year, qtrNum];*yr and qtrnum are from us_goals;
+	Difference=Sales-Goal;
+	DROP yr qtr salesq1-salesq4;
+RUN;
+
+PROC PRINT data=work.diffsales;
+	Format goal sales difference dollar14.2;
+RUN;
+	
