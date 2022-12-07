@@ -1,1 +1,38 @@
 
+/*
+Chapter 12: Processing Data Using Hash Object
+	Topics:
+		○ Declaring Hash Objects (No examples)
+		○ Defining Hash Objects
+		○ Finding Key Values in a Hash Object
+		○ Writing a Hash Object to a Table
+		○ Hash Object Processing
+		○ Using Hash Iterator Objects
+		○ Quiz
+
+*/
+
+LIBNAME certadv '/home/u45038867/certadv';
+
+/************************
+* Defining Hash Objects *
+*************************/
+
+*Example Defining a hash object;
+DATA work.report;
+	IF 0 THEN	
+		SET certadv.ctcities (keep=code city name);
+	IF _N_=1 THEN DO;
+		
+		*creating a hash object named airports based on .ctcities dataset;
+		DECLARE hash airports (dataset: "certadv.ctcities");
+		airports.definekey ("Code"); *Code is the key component;
+		airports.definedata ("City", "Name");*Defining data components;
+		airports.definedone();
+		
+	END;
+RUN;
+
+
+PROC PRINT data=work.reports;
+RUN;
