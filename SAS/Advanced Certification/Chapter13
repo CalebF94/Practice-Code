@@ -1,1 +1,41 @@
+/*
+Chapter 13: Using SAS Utility Procedures
+		Topics:
+			○ Creating Picture Formats with the Format Procedure
+			○ Creating Function with PROC FCMP
+			○ QUIZ
+
+*/
+
+
+LIBNAME certadv '/home/u45038867/certadv';
+
+/*****************************************************
+* Creating Picture Formats with the FORMAT Procedure *
+******************************************************/
+
+*PICTURE Statement example;
+PROC FORMAT;
+	PICTURE rainamt
+			0-2='9.99 slight'/* inclusive for both 0 and 2*/
+			2<-4='9.99 moderate'/* inclusive for 4 exclusive for 2*/
+			4<-<10='9.99 heavy'/* Exclusive for both 4 and 10*/
+			OTHER='999 check value';
+RUN;
+
+PROC PRINT data=certadv.rain;
+	format amount rainamt.;
+run;
+
+
+*Using Directives examples;
+PROC FORMAT;
+	PICTURE mydate (default=10)/*Default indicates 10 characters*/
+		low-high='%0d-%3b%Y' (DATATYPE=date);/*low-high gives range of values(All)*/
+RUN;
+
+PROC PRINT data=certadv.empdata (keep=division hiredate lastname obs=5);
+	TITLE 'Using Directives to Format Hire Date';
+	FORMAT hiredate mydate.;
+RUN;
 
