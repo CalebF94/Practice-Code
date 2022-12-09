@@ -87,3 +87,49 @@ RUN;
 
 PROC PRINT data=work.countrycode noobs;
 RUN;
+
+
+
+/******************************
+* Using Hash Iterator Objects *
+*******************************/
+DATA work.topbottom;
+	DROP i; *Dropping the DO loop index;
+	
+	*Initiate hash object only on first iteration of DATA step;
+	IF _N_=1 THEN DO;
+		IF 0 then set certadv.Orderfact (keep=customerID ProductID TotalRetailPrice);
+		
+		*Creating ordered hash object;
+		DECLARE hash customer(dataset: 'certadv.Orderfact', ordered: 'descending');
+		customer.definekey('TotalRetailPrice', 'CustomerID');
+		customer.definedata('TotalRetailPrice', 'CustomerID', 'ProductID');
+		customer.definedone();
+		
+		*Declaring hiter object;
+		declare hiter C('customer');
+		
+	END;
+	
+	*Pointing to the first hiter item;
+	C.first();
+	DO i=1 to 2;
+		output work.topbottom;
+		C.Next();*Moving pointer to 2nd item;
+	END;
+	
+	*Point to last hiter item;
+	C.last();
+	DO i=1 to 2;
+		output work.topbottom;
+		C.prev();*moving pointer back 1 item;
+	END;
+RUN;
+		
+PROC PRINT data=work.topbottom;
+	TITLE "Top and Bottom Customers";
+RUN;
+
+PROC PRINT data=work.ordered_cust;
+	TITLE 'Customer Hash Object';
+RUN;
