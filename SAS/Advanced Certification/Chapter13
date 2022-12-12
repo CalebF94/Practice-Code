@@ -39,3 +39,156 @@ PROC PRINT data=certadv.empdata (keep=division hiredate lastname obs=5);
 	FORMAT hiredate mydate.;
 RUN;
 
+
+* The MULTIPLIER= Option;
+PROC FORMAT;
+	*Multiplies the variable's value by 10 before formatting;
+	PICTURE discount low-high='009.0%' (multiplier=10);
+RUN;
+
+DATA work.customerdiscount;
+	SET certadv.grocery;
+	FORMAT CustomDiscount Discount.;
+RUN;
+
+PROC PRINT data=work.customerdiscount (OBS=10) noobs;
+	TITLE "The MULTIPLIER= Option";
+RUN;
+
+
+*The PREFIX= Option;
+PROC FORMAT;
+	*Notice the leading zeros, values will be currency;
+	PICTURE NewPrice low-high='000,000.99' (prefix='$');
+RUN;
+
+DATA work.newprice;
+	SET work.customerdiscount;
+	NewPrice = Price-(Price*(CustomDiscount*0.01));
+	*Applying the formats;
+	FORMAT NewPrice NewPrice. CustomDiscount Discount.;
+RUN;
+
+PROC PRINT data=work.newprice (OBS=10);
+	TITLE 'Using the PREFIX= Option';
+RUN;
+
+
+*Example: Creating a Custom Percent Format;
+PROC FORMAT;
+	PICTURE Discount low-high='009.0%' (multiplier=10);
+	PICTURE NewPrice low-high='000,009.99' (prefix='$');
+	PICTURE Diff (ROUND) low-high='000,009.99' (prefix='$');
+RUN;
+
+data work.newPriceTot;
+	SET certadv.grocery;
+	NewPrice=Price-(Price*(CustomDiscount*0.01));
+	Difference=Price-NewPrice;
+	FORMAT CustomDiscount Discount. NewPrice NewPrice. Difference Diff.;
+RUN;
+
+PROC PRINT data=work.newPriceTot (OBS=6);
+	TITLE 'Using the ROUND Option';
+RUN;
+
+
+*Creating a Custom Numeric Format for Large Numbers;
+PROC FORMAT;
+	PICTURE dollar_KM (round default=7)
+		low-1000='0,009' (PREFIX='$' MULTIPLIER=1)
+		1000<-1000000='0,009.9K' (PREFIX='$' MULTIPLIER=.01)
+		1000000<-high='0,009.9M' (PREFIX='$' MULTIPLIER=.00001);
+RUN;
+
+PROC PRINT DATA=certadv.values noobs;
+	TITLE 'Custom Formatting for Large Numbers';
+	FORMAT MultiValues 12.5 FormattedValues dollar_KM.;
+RUN;
+
+
+
+/***********************************
+* Creating Function with PROC FCMP *
+************************************/
+
+*Creating a Custom Character Function with One Argument;
+PROC FCMP outlib=certadv.functions.dev;
+	FUNCTION ReverseName(lastfirst $) $ 40;
+		First=scan(lastfirst, 2, ',');
+		Last=scan(lastfirst, 1, ',');
+	RETURN(catx(' ', First, Last));
+	ENDSUB;
+RUN;
+
+*Calling the ReverseName custom function;
+OPTIONS cmplib=certadv.functions; *Specifying the location that contains the custom functions;
+
+DATA work.baseball;
+	SET certadv.baseball;
+	Player=reversename(Name);
+	KEEP Name Team Player;
+RUN;
+
+PROC PRINT data=work.baseball (OBS=10);
+	TITLE 'Using The ReverseName Custom Function';
+RUN;
+
+
+*Example: Creating a Custom Numeric Function with One Argument;
+PROC FCMP outlib=certadv.functions.dat;
+	
+	*Takes month as an input;
+	FUNCTION MyQuarter(month);
+		IF month in(2,3,4) THEN myqtr=1;
+			else if month in(5,6,7) THEN myqtr=2;
+			else if month in (8,9,10) THEN myqtr=3;
+			else myqtr=4;
+		RETURN(myqtr);
+	ENDSUB;
+RUN;
+
+
+OPTIONS CMPLIB=certadv.functions;
+DATA work.dates;
+	DO Dates='15JAN2019'd to '31DEC2019'd by 30;
+		MonNum=month(Dates);
+		FiscalQuarter=MyQuarter(MonNum);
+		OUTPUT;
+	END;
+RUN;
+
+PROC PRINT data=work.dates;
+	TITLE 'Custom Numeric Function';
+	FORMAT Dates mmddyy10.;
+RUN;
+
+
+*Example: Creating a Custom Character Function with Multiple Arguments;
+PROC FCMP OUTLIB=certadv.functions.dev;
+	*Functions takes two character arguments;
+	FUNCTION ReverseName(lastfirst $, pos $) $ 40;
+		First=scan(lastfirst, 2, ',');
+		Last=scan(lastfirst, 1, ',');
+		
+		*assigns the player to a position using the pos argument;
+		IF substr(pos, 2, 1)='F' THEN	
+			RETURN(catx(' ', 'Outfielder', First, Last));
+		ELSE IF substr(pos, 2, 1)='B' THEN
+			RETURN(catx(' ', 'Baseman', First, Last));
+		ELSE RETURN(catx(' ', pos, First, Last));
+	ENDSUB;
+QUIT;
+
+OPTIONS cmplib=certadv.functions;
+
+DATA work.baseball;
+	SET certadv.baseball;
+	Player=ReverseName(Name, Position);
+	KEEP Name Team Position Player;
+RUN;
+
+PROC PRINT data=baseball;
+	TITLE 'Custom Function with multiple arguments';
+RUN;
+
