@@ -191,4 +191,3 @@ RUN;
 PROC PRINT data=baseball;
 	TITLE 'Custom Function with multiple arguments';
 RUN;
-
