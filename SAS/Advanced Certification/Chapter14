@@ -1,0 +1,67 @@
+/*
+Chapter 14: Using Advanced Functions
+		Topics:
+			○ Using a Variety of Advanced Functions
+			○ Performing Pattern Matching with Perl Regular Expression
+			○ Quiz
+*/
+
+LIBNAME certadv '/home/u45038867/certadv';
+
+*Retrieving Previous Values using LAG;
+DATA work.stockprev;
+	SET certadv.Stock6Mon (drop=close);
+	firstprevday=LAG(Open);
+	secondprevday=LAG2(Open);
+	thirdprevday=LAG3(Open);
+RUN;
+
+PROC PRINT data=work.stockprev (OBS=10);
+	TITLE 'Using the LAG Function';
+RUN;
+
+
+*Calculating a moving average;
+DATA work.stockavg;
+	SET certadv.stocks (drop=close);
+	Open1Mon = LAG(Open);
+	Open2Mon = LAG2(Open);
+	Open3MonAvg = MEAN(Open, Open1Mon, Open2Mon);
+	
+	Format Open3MonAvg 8.2;
+RUN;
+
+PROC PRINT data=work.stockavg;
+	TITLE 'Calculating 3-Month Moving Average';
+RUN;
+
+
+
+*Counting the Number of Words;
+DATA work.sloganact;
+	SET certadv.slogans;
+	Num24 = COUNT(slogans, '24/7');
+	NumWord = COUNTW(slogans);
+RUN;
+
+PROC PRINT data=work.sloganact;
+	TITLE 'Using the COUNT and COUNTW function';
+	TITLE2 'Counting occurances of 24/7 and total words';
+RUN;
+
+
+*Example: Finding the Word Number;
+
+DATA work.sloganact;
+	SET certadv.slogans;
+	Num24 = COUNT(slogans, '24/7');
+	NumWord = COUNTW(slogans);
+	
+	*Returns the position of the word containing 24/7;
+	FindWord24 = FINDW(slogans, '24/7', " ", 'e');
+RUN;
+
+PROC PRINT data=work.sloganact (obs=10);
+	TITLE 'Using the FINDW Function';
+RUN;
+
