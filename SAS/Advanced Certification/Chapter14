@@ -8,6 +8,10 @@ Chapter 14: Using Advanced Functions
 
 LIBNAME certadv '/home/u45038867/certadv';
 
+/****************************************
+* Using a Variety of Advanced Functions *
+*****************************************/
+
 *Retrieving Previous Values using LAG;
 DATA work.stockprev;
 	SET certadv.Stock6Mon (drop=close);
@@ -65,3 +69,90 @@ PROC PRINT data=work.sloganact (obs=10);
 	TITLE 'Using the FINDW Function';
 RUN;
 
+/************************************************************
+* Performing Pattern Matching with Perl Regular Expressions *
+*************************************************************/
+*Example: PRXMATCH Function using a Constant;
+DATA work.matchphn;
+	SET certadv.nanumbr;
+	
+	/*Three groups of digits
+		1 and 2) first two groups start with 2-9 and are three digits
+		3) four digits long
+	*/
+	loc=PRXMATCH('/([2-9]\d\d)-([2-9]\d\d)-(\d{4})/', PhoneNumber);
+RUN;
+
+PROC PRINT data=work.matchphn;
+	WHERE loc>0;
+RUN;
+
+
+* Example: PRXMATCH Function Using a Column;
+DATA work.phnumbr (drop=Exp);
+	SET certadv.nanumbr;
+	*REgular expression as a column. The o at end stops SAS from compiling expression each time;
+	Exp='/([2-9]\d\d)-([2-9]\d\d)-(\d{4})/o';
+	Loc=PRXMATCH(Exp, PhoneNumber);
+RUN;
+
+PROC PRINT data=work.phnumbr;
+	TITLE 'PRXMATCH Function Using a Column';
+	WHERE Loc>0;
+RUN;
+	
+
+*Example: PRXPARSE and PRXMATCH Function Using a Pattern ID Number;
+DATA work.phnumbr (drop=Exp);
+	SET certadv.nanumbr;
+	Exp='/([2-9]\d\d)-([2-9]\d\d)-(\d{4})/o';
+	Pid=PRXPARSE(Exp);
+	Loc=PRXMATCH(Pid, PhoneNumber);
+RUN;
+
+PROC PRINT data=work.phnumbr;
+	TITLE 'PRXPARSE and PRXMATCH Function Using a Pattern ID Number';
+RUN;
+
+
+*Example: Using the PRXCHANGE Function to Standardize Data;
+DATA work.prxsocial;
+	SET certadv.socialacct;
+	* s at the beginning of expression indicates to substitute the full name for the abbreviation;
+	* the i modifier at end of expression indicates to ignore case;
+	SOCIAL_Media_Pref1=PRXCHANGE('s/(FB)/Facebook/i', -1, Social_Media_Pref1);
+	SOCIAL_Media_Pref1=PRXCHANGE('s/(IG)/Instagram/i', -1, Social_Media_Pref1);
+	SOCIAL_Media_Pref2=PRXCHANGE('s/(FB)/Facebook/i', -1, Social_Media_Pref2);
+	SOCIAL_Media_Pref2=PRXCHANGE('s/(IG)/Instagram/i', -1, Social_Media_Pref2);
+RUN;
+
+PROC PRINT data=work.prxsocial;
+	TITLE 'Using the PRXCHANGE Function to Standardize Columns';
+RUN;
+
+
+*Example: Changing the Order Using the PRXCHANGE Function;
+DATA work.revname;
+	SET certadv.survnames;
+	* substituting the first word "(\w+)," and second word (\w+) 
+	  with second word '$2' and first word '$1';
+	ReverseName=PRXCHANGE('s/(\w+), (\w+)/$2 $1/', -1, name);
+RUN;
+
+PROC PRINT data=work.revname;
+	TITLE 'Reversing Name Order using PRXCHANGE';
+RUN;
+
+
+*Example: Capture Buffers for Substitution Using the PRXCHANGE Function;
+DATA work.latlong;
+	SET certadv.email;
+	* three sets of parentheses indicates three capture buffers;
+	* 1st and 3rd capture buffers are a pos or neg number followed by decimal
+	  followed by more digits;
+	LatLong=PRXCHANGE('s/(-?\d+\.\d*)(@)(-?\d+\.\d*)/$3$2$1/', -1, LongLat);
+RUN;
+
+PROC PRINT data=work.latlong;
+	TITLE 'Capture Buffers for substitution Using PRXCHANGE';
+RUN;
