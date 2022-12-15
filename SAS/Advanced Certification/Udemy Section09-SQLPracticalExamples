@@ -166,3 +166,189 @@ PROC SQL;
 	GROUP BY name, score1, score2, score3, gender, stu_id
 	HAVING Count=1; *Showing rows that occur multiple times;	
 QUIT;
+
+
+/* 
+Lecture 63: Expanding Hierarchical Data in a Table
+
+generate an output column that shows a hierarchical relationship among rows in a table
+
+Shows the name and ID number of each teacher who has a supervisor, along with the name and ID
+Number of each Teacher's supervisor
+
+Using a self join to match teachers and their respective supervisors
+*/
+
+PROC IMPORT datafile="&home/Teacher ID.xlsx"
+	dbms=xlsx
+	out=teacher_id 
+	REPLACE;
+RUN;
+
+PROC SQL;
+	SELECT 
+		A.name label="Teacher", A.id label="Teacher ID",
+		B.name label="Supervisor", B.id label="Supervisor ID"
+	FROM
+		teacher_id as A LEFT JOIN teacher_id as B
+	ON A.supervisor = B.id
+	WHERE A.supervisor is not missing;
+QUIT;
+	
+/* 
+Lecture 64: Summarizing Data in Multiple Columns
+
+Want to produce a grand mean of multiple columns in a table
+*/
+
+PROC IMPORT DATAFILE="&home/score_data_id_class.xlsx"
+	DBMS=xlsx
+	out=score_data
+	replace;
+RUN;
+
+/* First way is to make columns for each mean */
+PROC SQL;
+	SELECT	
+		mean(score1) as s1_mean,
+		mean(score2) as s2_mean,
+		mean(score3) as s3_mean,
+		mean(calculated s1_mean, calculated s2_mean, calculated s3_mean) 
+			"Grand Mean" format=4.1		
+	FROM 
+		score_data;
+QUIT;
+
+/* Second way is to use nested functions 
+WIll only have one column because we didn't calculate other columns*/
+PROC SQL;
+	SELECT
+		mean(mean(score1), mean(score2), mean(score3)) "Grand Mean" format=4.2
+	FROM 
+		score_data;
+QUIT;
+
+
+/* 
+Lecture 65: Creating a Summary Report
+
+Report to show a summary report contain reward points for each students
+*/
+PROC IMPORT datafile="&home/rewards_ponits.xlsx"
+	dbms=xlsx
+	replace
+	out=rp_data;
+RUN;
+
+* She did it dumb and used more complex code;
+PROC SQL;
+	TITLE 'Total Reward Points by Student';
+	SELECT 
+		Name,
+		sum(CASE WHEN month(date)=1 THEN Points END) as Jan,
+		sum(CASE WHEN month(Date)=2 THEN Points END) as Feb,
+		sum(CASE WHEN month(date)=3 THEN Points END) as Mar
+	FROM rp_data
+	GROUP BY Name;
+QUIT;
+
+*Heres the query without the aggregation functions. She used this as a subquery
+and then aggregated;
+PROC SQL;
+	TITLE 'Data without aggregation by Name';
+	SELECT 
+		Name,
+		CASE WHEN month(date)=1 THEN Points END as Jan,
+		CASE WHEN month(Date)=2 THEN Points END as Feb,
+		CASE WHEN month(date)=3 THEN Points END as Mar
+	FROM rp_data;
+QUIT;
+
+
+/* 
+Lecture 66: Creating Customized Sort Order
+
+SOrt data using logical order of the months
+
+We have to create new column, sorter column. Will use a subquery to create the new 
+sorter column
+*/
+
+PROC IMPORT datafile="&home/Score by Month.xlsx"
+	dbms=xlsx
+	out=score_month
+	replace;
+RUN;
+
+PROC SQL;
+	SELECT Name, Score, Month
+	FROM 
+		(SELECT 
+			Name, Score, Month,
+			CASE Month
+				WHEN "Jan" THEN 1
+				WHEN "Feb" THEN 2
+				WHEN "Mar" THEN 3
+				WHEN "Apr" THEN 4
+				WHEN "May" THEN 5
+				ELSE .
+			END as sorter
+		 FROM 
+		 	score_month
+		)
+	ORDER BY sorter, name;
+QUIT;
+
+
+
+/* 
+Lecture 67: Updating a Table with Values from another Table
+
+Want to update score data with updated score1 values
+
+
+*/
+
+*Table contains the original scores. contains all 3 scores and student info;
+PROC IMPORT datafile="&home/score_data_miss_birthdate.xlsx"
+	dbms=xlsx
+	out=score_data
+	replace;
+RUN;
+
+*Table contains the updated scores;
+PROC IMPORT datafile="&home/score1_update.xlsx"
+	dbms=xlsx
+	out=score1_data
+	replace;
+RUN;
+
+
+PROC SQL;
+	CREATE TABLE score_updated AS	
+		SELECT * 
+		FROM score_data;
+		
+	*Updating the table we just created;
+	UPDATE score_updated as u
+	
+		/* Changing score1
+		   
+		   Subquery that merges the original table with updated table. Only updates
+		   rows where the name in in the score1_data table
+		*/
+		SET score1 = (SELECT score1 from score1_data as s1 WHERE u.name = s1.name)
+		WHERE u.name IN (SELECT name from score1_data);
+		
+	
+	*Printing tables for comparison;
+	TITLE "Original Data";
+	SELECT * FROM score_data;
+	
+	TITLE "Scores to Update";
+	SELECT * FROM score1_data;
+	
+	TITLE "Updated Score Data";
+	SELECT * FROM score_updated;
+QUIT;
+
