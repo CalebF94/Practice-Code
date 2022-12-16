@@ -1,0 +1,53 @@
+/* 
+Section 11: SAS Macro Variables & Macro Functions
+	Lectures:
+		74) Introduction
+		75) Automatic Macro Variables
+		76) User Defined Macro Variables
+		77) Using SYMBOLGEN
+		78) Using %PUT
+		79) Using Macro Quoting Function to Mask Special Characters: %STR
+		80) Masking Special Characters: %STR
+		81) Manipulating Character Strings: %UPCASE
+		82) Manipulating Character Strings: %SUBSTR
+		83) Manipulating Character Strings: %SCAN
+		84) Using %SYSFUNC to execute other SAS functions
+		85) Combining Macro Variable References with Texts
+		86) Using delimiter for a macro variable name immediately before text
+		87) More on using delimiter for a macro variable name immediately before text
+
+*/
+
+%LET home=/home/u45038867/Udemy-AdvancedSAS/Data;
+
+/* Lecture 74: Macro Variable Introduction  
+
+Macro variables are used to substitute text in a SAS program
+When referencing a macro variable in a SAS program SAS replaces the reference with 
+the text value you specify
+
+Two types of macro variables:
+	1) Automatic macro variables, which are provided by SAS
+	2) User defined macro variables, whose values you define and create
+	
+IF you need to reference a macro variable within quotation marks, such as a title, you
+must use double quotes
+*/
+
+*THis is the name of a data set;
+%LET data=score_data1;
+
+PROC IMPORT datafile="&home/score_data_id.xlsx"
+	dbms=xlsx
+	out=&data
+	replace;
+RUN;
+
+*Referencing macro variable in both the data= and title;
+PROC PRINT data=&data;
+	TITLE "&data information";
+RUN;
+
+PROC MEANS data=&data;
+	TITLE "Variable Mean Statistics on &data";
+RUN;
