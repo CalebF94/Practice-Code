@@ -1,0 +1,32 @@
+/* Section 10: Coding Exercise 
+
+	Data: 	
+		allscore.xlsx
+	
+	Instructions:
+		Generate PROC UNIVARIATE outputs for all 4 score variables
+		1) using macro variable to replace score vars names
+			- read, math, science, write
+		2) usding macro with parameter
+*/
+
+%LET home=/home/u45038867/Udemy-AdvancedSAS/Data;
+
+PROC IMPORT datafile="&home/allscore.xlsx"
+	dbms=xlsx
+	out=work.allscore
+	replace;
+RUN;
+
+*defining which column to use;
+%let score_var = read;
+
+%MACRO score (s_var= );
+	PROC UNIVARIATE data=work.allscore;
+		TITLE "UNIVARIATE for the variable(s): &s_var";
+		VAR &s_var;
+	RUN;
+%MEND score;
+
+*invoking score macro with a macro variable as input;
+%score(s_var=&score_var)
