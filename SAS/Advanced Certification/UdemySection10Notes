@@ -1,0 +1,117 @@
+/* 
+Section 10: SAS Macro Introduction 
+	Lectures:
+		68) MACRO Overview
+		69) Replacing Text Strings Using Macro Variables
+		70) Generating SAS Code Using Macros
+		71) Passing Information Into a Macro Using Parameters
+
+*/
+
+%LET home=/home/u45038867/Udemy-AdvancedSAS/Data;
+
+/* 
+Lecture 68: SAS Macro Overview 
+
+Two delimiters trigger macro processor activity:
+	1)&name - refers to a macro variable
+	2)%name - refers to a macro
+*/
+
+*example: creating macro variable;
+%let state = Texas;
+Title "data for &state";
+
+
+* Creating macro programs;
+%macro print;
+	proc print data=score_data;
+	Title 'Input data';
+	RUN;
+%MEND print;
+
+%macro data_info;
+	score_data;
+%MEND data_info;
+
+
+/* 
+Lecture 69: Replacing Text Strings Using Macro Variables 
+
+macro variables are an efficient way of replacing text strings.
+Use the %let statement to assign the macro var a name and value
+*/
+
+PROC IMPORT datafile = "&home/score_data.xlsx"
+	dbms=xlsx
+	out=score_data
+	replace;
+RUN;
+
+%let score = score1 score2; *this is a reference a data table column;
+
+PROC MEANS DATA=score_data mean maxdec=1;
+	*Referenceing the macro variable;
+	VAR &score;
+	*Have to use double quotes to resolve macro var references within quotes;
+	TITLE "Mean for &score";
+RUN;
+
+
+/* 
+Lecture 70: Generating SAS Code Using Macros 
+
+Avoid naming macros using SAS language keywords
+MAcro definitions fall between %macro and %end
+
+To call a macro, preced the name of the macro with a %
+*/
+
+*a string inside a macro is called constant text or model text b/c it is the model 
+for the text that becomes part of your SAS program;
+%MACRO data_info;
+	score_data
+%MEND;
+
+*Resolves as "score means from score_data";
+TITLE "Score means from %data_info";
+
+*Calling the macro program in providing the data name;
+PROC PRINT data=%data_info;
+	TITLE "Score means from %data_info";
+RUN;
+
+*MAcro that contains entire sections of a SAS program;
+%MACRO print;
+	PROC PRINT data=score_data;
+		TITLE 'Input data';
+	RUN;
+%MEND print;
+
+%print
+
+
+/* 
+Lecture 71: PAssing information into a macro using parameters;
+
+macro parameters enable us to pass information into macro
+
+A few advantages of using macro parameters
+	- Write fewer %LET statements
+	- Ensures the variables don't interfere with parts of your program outside the macro
+		- local variables
+*/
+
+*score_var= is a macro variable local to the score_mean program;
+
+%MACRO score_mean(score_var= );
+	PROC means data=score_data mean maxdec=1;*The dataset is hardcoded;
+		var &score_var;*PROC MEANS will only use the columns specified the macro parameter;
+	RUN;
+%MEND score_mean;
+
+*Invoking the macro by providing different values for the parameters;
+%score_mean(score_var=score1)
+%score_mean(score_var=score2)
+%score_mean(score_var=score3)
+%score_mean(score_var=score1 score2 score3); *Can pass multiple columns as well
