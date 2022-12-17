@@ -1,0 +1,196 @@
+/* 
+Section 11: SAS Macro Variables & Macro Functions
+	Lectures:
+		74) Introduction
+		75) Automatic Macro Variables
+		76) User Defined Macro Variables
+		77) Using SYMBOLGEN
+		78) Using %PUT
+		79) Using Macro Quoting Function to Mask Special Characters: %STR
+		80) Masking Special Characters: %STR
+		81) Manipulating Character Strings: %UPCASE
+		82) Manipulating Character Strings: %SUBSTR
+		83) Manipulating Character Strings: %SCAN
+		84) Using %SYSFUNC to execute other SAS functions
+		85) Combining Macro Variable References with Texts
+		86) Using delimiter for a macro variable name immediately before text
+		87) More on using delimiter for a macro variable name immediately before text
+
+*/
+
+%LET home=/home/u45038867/Udemy-AdvancedSAS/Data;
+
+/* Lecture 74: Macro Variable Introduction  
+
+Macro variables are used to substitute text in a SAS program
+When referencing a macro variable in a SAS program SAS replaces the reference with 
+the text value you specify
+
+Two types of macro variables:
+	1) Automatic macro variables, which are provided by SAS
+	2) User defined macro variables, whose values you define and create
+	
+IF you need to reference a macro variable within quotation marks, such as a title, you
+must use double quotes
+*/
+
+*THis is the name of a data set;
+%LET data=score_data1;
+
+PROC IMPORT datafile="&home/score_data_id.xlsx"
+	dbms=xlsx
+	out=&data
+	replace;
+RUN;
+
+*Referencing macro variable in both the data= and title;
+PROC PRINT data=&data;
+	TITLE "&data information";
+RUN;
+
+PROC MEANS data=&data;
+	TITLE "Variable Mean Statistics on &data";
+RUN;
+
+/* Lecture 75: Automatic Macro Variables
+
+SAS creates and defines several automatic variables for for you.
+Some contain info on the computing environment.
+	- SYSDATE: DATE7
+	- SYSDATE9: DATE9
+	- SYSDAY: Day of the week
+	- SYSTIME: Time
+	
+Some contain information that automatically change based on the submitted SAS statements
+	- SYSLAST: Name of the most recently created SAS data set
+	- SYSPARM: text that is specified when SAS is invoked
+	- SYSERR: Contains a return code status that is set by the DATA step and some SAS procedures
+			  to indicated whether the step or procedure executed successfully
+*/
+
+PROC IMPORT datafile = "&home/score_data_id.xlsx"
+	dbms=xlsx
+	out=score_data
+	replace;
+RUN;
+
+*The footnote contains system information stored in automatic macro variables;
+FOOTNOTE "Created &SYSTIME &SYSDAY &SYSDATE9";
+PROC MEANS data=score_data;
+	TITLE "Variable Mean Statistics on score_data";
+RUN;
+
+
+/* Lecture 76: User-Defined Macro Variables
+
+Simplest way to define your own macro variable is to use the %let statement.
+	- %LET var-name = value
+	
+note:
+	-Values are stored as character strings
+	- mathematical expressions are not evaluated
+	- Case of characters is preserved
+	- Leading and Trailing blanks are removed
+*/
+
+PROC IMPORT datafile="&home/score_data_id.xlsx"
+	dbms=xlsx
+	out= score_data
+	replace;
+RUN;
+
+*the quotes are included in the variable;
+%LET title="Average of Scores";
+*leading blanks are removed;
+%LET x= score1 score2 score3;
+
+PROC MEANS data=score_data;
+	TITLE &title;
+	VAR &x;
+RUN;
+
+
+
+/* Lecture 77: Displaying Macro Values in SAS Log: Using SYMBOLGEN
+
+You'll need to see the value that replaces your macro variable reference 
+while debugging. 
+
+Use the SYMBOLGEN system option to monitor the value that is substituted for 
+a variable reference.
+
+When symbolgen is turned on, SAS writes a message to the log for each macro variable
+that is referenced in your program; 
+*/
+
+*Turning on SYMBOLGEN;
+OPTIONS SYMBOLGEN;
+
+*Same code as previous lecture;
+PROC IMPORT datafile="&home/score_data_id.xlsx"
+	dbms=xlsx
+	out= score_data
+	replace;
+RUN;
+
+*the quotes are included in the variable;
+%LET title="Average of Scores";
+*leading blanks are removed;
+%LET x= score1 score2 score3;
+
+*The output is the same, but the log contains lines stating the values 
+of each macro variable;
+PROC MEANS data=score_data;
+	TITLE &title;
+	VAR &x;
+RUN;
+
+*SYMBOLGEN option remains on until it is turned off;
+OPTIONS NOSYMBOLGEN;
+
+
+
+
+/* Lecture 78: Displaying macro variables in log using %put
+
+ Another way to display the value of macro variables is to use the %put statement
+ 
+ %put can output any text string. It will print raw strings in combination with
+ references to macro variables
+*/
+
+*Using the same macro variables from the previous lecture;
+%put &SYSDATE9;
+%put &x;
+
+*You can also add explanatory text to accompany the macro var reference;
+%put The value of the macro variable x: &x;
+
+
+/* Lecture 79: Macro Quoting Functions to Mask Special Characters: %STR
+
+The %STR function is used to mask tokens during compilation so that the macro
+processor does not interpret them as macro level syntax. It hides the normal
+meaning of a semicolon and other special takens and mnemonic equivalents
+
+General form:
+	%STR (arguments)
+*/
+
+PROC IMPORT datafile="&home/score_data_id.xlsx"
+	dbms=xlsx 
+	out=score_data_1 
+	replace;
+RUN;
+
+OPTIONS SYMBOLGEN;
+
+/*
+In the code below SAS interprets the first semicolon to be the end of the statement;
+  
+		%let proc_means = proc means data = score_Data1; run; ;
+
+IF we wrap the code in the %STR() function then the macro works as expected
+*/
+%LET PROC_MEANS = %STR (PROC MEANS DATA=score_data_1; run;);
+&proc_means
