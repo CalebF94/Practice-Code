@@ -194,3 +194,208 @@ IF we wrap the code in the %STR() function then the macro works as expected
 */
 %LET PROC_MEANS = %STR (PROC MEANS DATA=score_data_1; run;);
 &proc_means
+
+
+
+/* Lecture 80: Masking Special Characters %STR
+
+
+1) Sometimes you might want to only mask the semi colon rather than the entire string
+2) You could also creat an additional macro variable that just contains the semicolon
+*/
+
+*1);
+TITLE 'Using a Single Macro Variables';
+%LET proc_means=PROC MEANS data=score_data_1 %str(;) run %str(;);
+&proc_means;
+
+*2)
+TITLE 'Using Multiple Macro Variables';
+%LET s=%str(;);
+%LET proc_means=PROC MEANS data=score_data_1 &s run &s;
+
+&proc_means;
+
+
+
+
+/* Lecture 81: Manipulating Character Strings: %UPCASE
+
+Macro character functions have same basic syntax as corresponding DATA step functions
+
+*/
+
+PROC IMPORT datafile="&home/score_data_id.xlsx"
+	DBMS=xlsx
+	out=score_data_1
+	replace;
+RUN;
+
+%let name_m=m;
+
+*Selecting students with an uppercase m in their name;
+PROC PRINT data=score_data_1;
+	TITLE "Students with M in the Name";
+	WHERE name contains %UPCASE("&name_m");*Notice still need double quotes;
+RUN;
+
+
+
+/* Lecture 82: Manipulating Character Strings: %SUBSTR
+
+%SUBSTR function enables you to extract part of a character string from tthe value 
+of a macro variable
+
+%SUBSTR(argument, position<,n>)
+	- argument: character string or text from which a substring is returned
+	- position: integer which specifies the position of the first character in substring
+	- n: optional argument that specifies the number of characters returned
+*/
+
+PROC IMPORT datafile="&home/score_data_miss_birthdate_new.xlsx"
+	DBMS=xlsx
+	out=score_data1
+	replace;
+RUN;
+
+%let BD07_e=31Dec2007;
+
+PROC PRINT data=score_data1;
+	*Extracting year and year month from BD07_e;
+	WHERE birthdate between
+		"01JAN%SUBSTR(&BD07_e, 6)"d AND
+		"31%SUBSTR(&BD07_e, 3)"d;
+	TITLE "All Students with Birthdate in 2007";
+RUN;
+
+
+
+
+/* Lecture 83: Manipulating Character Strings: %SCAN
+
+Allows you to extract words from the value of a macro variable
+
+%SCAN(argument, n<, delimiter>)
+	-Argument: 
+	-n: Specifies the position of the word to scan
+	- delimiter: specifies an optional list of one or more characters that separate words
+*/
+
+%LET BD07_e = DEC/2007/more/words;
+
+PROC PRINT data=score_data1;
+	*Extracting the Month from BD07_e;
+	WHERE birthdate BETWEEN
+		"01JAN2007"d AND
+		"31%SCAN(&BD07_e, 1, "/")2007"d;
+	TITLE "All students born in 2007";
+RUN;
+
+
+
+/* Lecture 84: Using SYSFUNC function to Execute other SAS functions
+
+Use the %SYSFUNC to execute other SAS functions as part of the macro
+
+%SYSFUNC (function (arguments), <,format)
+	- function: The name of the SAS function to execute
+	- argument: one or more arguments that are used by the function specified
+			    in the first argument
+	- format: optional format to apply to the result of function.
+*/
+
+PROC IMPORT datafile="&home/score_data_id.xlsx"
+	DBMS=xlsx
+	out=score_data
+	replace;
+RUN;
+
+*Get the system date and time using the %SYSFUNC function to call standard SAS 
+functions today() and weekdate. format;
+*Note we could have also used the %SYSDAY and &SYSDATE9 macro variables;
+FOOTNOTE "Created on %SYSFUNC(today(), weekdate.)";
+PROC MEANS data=score_data;
+	TITLE "Variable Mean Statistics on Score_Data";
+RUN;
+
+
+
+/* Lecture 85: Combining Macro Variable References with Texts
+
+Sometimes you may need to place a macro variable reference adjacent to leading text
+or next to other macro variable references. There are a couple of scenarios to consider
+*/
+
+/*1) macro variable reference adjacent to leading text (text&variable) */
+%LET n=1;
+PROC MEANS data=score_data;
+	*Referencing a macro directly next to a column name(text)
+	&n resolves to 1 when code is run;
+	VAR score&n;
+	TITLE "Mean statistics for score&n";
+RUN;
+
+
+
+/*2) referencing adjacent macro variables*/
+%let n=1;
+%let v=score;
+
+* we reference both &n and &v in adjacent code.
+  Both variables get resolved at the same time to score1;
+PROC MEANS data=score_data;
+	var &v&n;
+	TITLE " Mean Statistics for &v&n";
+RUN;
+
+
+/*3) macro variable reference adjacent to trailing text (&var-nameText) */
+%let n=1;
+PROC PLOT data=score_data;
+	*This is dependent on SAS being able to correctly read the name of the macro variable
+	In this case our macro var reference is directly before a special character (*) so
+	SAS is able to correctly read the code;
+	PLOT score&n * gender;
+RUN;
+
+
+
+/* Lecture 86: Using Delimiter for a macro variable name immediately before text
+
+If you want to place a macro variable name immediately befor text other than a special
+character, you'll need to add delimiters
+*/
+
+%LET v=score;
+PROC MEANS data=score_data;
+	* The period is a built in delimiter and isn't include in the macro variable 
+	 reference. If we don't include the period SAS thinks you're trying to reference 
+	 a macro variable called v1;
+	var &v.1;
+	TITLE "Mean Statistics for &v.1";
+RUN;
+
+
+
+/* Lecture 87: More on Using a delimiter for a macro variable name immediately 
+   Before Text 
+*/
+
+LIBNAME Sdata "&home";
+
+PROC IMPORT datafile="&home/score_data_id.xlsx"
+	DBMS=xlsx
+	out=Sdata.score_data
+	replace;
+RUN;
+
+
+%LET lib=Sdata;
+
+*We want to reference the score_data dataset stored in Sdata library;
+
+* The first period is treated as a delimiter and the second is treated as text. Without
+  both periods SAS reads it as Sdatascore_data in the work library, which doesn't exist;
+PROC MEANS data = &lib..score_data;
+	VAR score1;
+RUN;
