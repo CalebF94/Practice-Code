@@ -1,0 +1,51 @@
+/*
+Chapter 11: Macro Variables and Macro Functions Coding Exercise
+
+
+	Data:
+		- score_month1.xlsx
+		- score_month1.xlsx
+		- score_month1.xlsx
+		
+	Instructions:
+		1) Import Excel Data files into SAS and create permanent SAS data 
+		   sets (library SD)
+		 	- Create User-Defined Macro Variable to replace the external 
+		 	  Excel data file names in Proc Import
+		2) Print out data sets;
+			- create user defined macro variable to replace the SAS data names
+			  in PROC PRINT
+			  
+		3) Use automatic macro variables &systime &sysday &sysdate9 to display
+		   the date of the SAS invocation in the TITLE statement in PROC 
+		   PRINT. The SAS data sets' names need to be in UPCASE in TITLE
+		   
+		4) Use SAS system option SYMBOLGEN to display macro variable values
+		   in the SAS log
+*/
+
+OPTION SYMBOLGEN;
+
+LIBNAME SD "&home"; 
+
+*Part 1;
+%LET home = /home/u45038867/Udemy-AdvancedSAS/Data;
+%LET fname= score_month3;*Change the number to read in other files;
+
+PROC IMPORT datafile="&home/&fname..xlsx"
+	DBMS=XLSX
+	out=SD.
+	REPLACE;
+RUN;
+
+
+*Part 2;
+%LET pname = score_month1;
+%LET pfile = SD.&pname;
+
+PROC PRINT data=&pfile;
+	*Part 3;
+	TITLE "Program run at &SYSTIME on &SYSDAY &SYSDATE9";
+RUN;
+
+OPTION NOSYMBOLGEN;
