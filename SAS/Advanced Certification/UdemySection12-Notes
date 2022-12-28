@@ -1,0 +1,238 @@
+/* 
+Section 12: Create and Use Macro variables during a data step or PROC SQL step
+	Lectures:
+		90) USe macro variables during execution of data step: Symput Routine
+		91) Create multiple macro variables with SYMPUT and Indirect referencing with &&
+		92) Obtaining macro variable values during DATA STEP Execution with SYMGET Function
+		93) Creating Macro Variables during PROC SQL Step Execution: INTO Clause
+		94) Creating a Series of Related MAcro Varibels witht eh INTO Clause in PROC SQL
+		95) Creating one macro variable holding a delimited list of values with INTO clause
+
+*/
+
+%LET home=/home/u45038867/Udemy-AdvancedSAS/Data;
+
+/* Lecture 90: Use Macro Variables during execution of data step: Symput Routine
+
+Data Step provides functions and a Call routine to transfer info between DATA step and
+macro processor
+
+Use symput in different situations:
+1_ With a literal
+	- CALL SYMPUT('macro-variable', 'text');
+	
+2) with a data step variable
+	- CALL SYMPUT('macro-variable', DATA-STEP-Variable);
+	- notice that the second argument is not in quotations
+	
+3) Using CALL SYMPUT with DATA Step expression
+	- CALL SYMPUT('macro-variable', expression);
+	- expression can be any combination of DATA step functions, variables, constants and 
+	  and logical or arithmetic operators that resolves to a character or numeric constant
+*/
+
+OPTION SYMBOLGEN;
+PROC IMPORT datafile="&home/score_data_id.xlsx"
+	DBMS=xlsx
+	out=score_data
+	replace;
+RUN;
+
+*Creating a table;
+PROC SQL;
+	CREATE TABLE ave_sdata as
+		SELECT *,
+			round(mean(score1, score2, score3), .1) as score_mean,
+			max(calculated score_mean) as max_mean,
+			min(calculated score_mean) as min_mean
+		FROM score_data;
+QUIT;
+	
+*Creating macro variables using CALL SYMPUT in a DATA step;
+DATA ave_sdata1;
+	SET ave_sdata;
+	*Creating macro var using a literal;
+	CALL SYMPUT('foot', 'With Average Score Information ');
+	
+	*Creating a macro var using an expression;
+	CALL SYMPUT('min', round(min_mean, 1));
+	
+	*Creating a macro var using a DATA step variable;
+	CALL SYMPUT('max', max_mean);
+	
+	DROP min_mean max_mean;*Dropping unneeded columns;
+RUN;
+
+PROC PRINT data=ave_sdata1;
+	TITLE 'Student Score Information';
+	FOOTNOTE "&foot: range from &min to &max";
+RUN;
+
+
+
+/* Lecture 91: Creating multiple macro variables with SYMPUT and Indirect referencing with &&
+
+Two knowledge Points
+	1) create multiple macro variables withing one DATA step
+		- CALL SYMPUT(expression1, expression2)
+		- expression1 evaluates to a macro variable name. Should change each time you want 
+		  to create another macro variable
+		- expression 2 is the value that you want to assign to a specific variable
+		
+	2) Referencing Macro variables indirectly and the forward rescan rules
+		- Forward Rescan Rules: When multiple ampersands or percent signs precede a name token,
+		  the macro processor resovles two ampersands to one ampersand and rescans the reference
+		- Usefuel when you are working with a series of related macro variables
+*/
+
+PROC IMPORT datafile = "&home/score_data_id.xlsx"
+	dbms=xlsx
+	out=score_data
+	replace;
+RUN;
+
+*Creating a score report for an individula student;
+DATA score_data1;
+	SET score_data;
+	*Makes a series of macro variables student1, student2... 
+	 the value of var is student's name;
+	CALL SYMPUT('student'||left(stu_id), trim(name));
+RUN;
+
+%put _USER_;
+
+
+%LET stu_id=1;*Student to create a report for;
+PROC PRINT data=score_data1;
+	WHERE stu_id=&stu_id;
+	TITLE "Individual Student Score Information for Student &stu_id";
+	FOOTNOTE "Score Information for &&student&stu_id";
+	*&&student&stu_id => &student1 => "students name ex tim";
+RUN;
+
+
+
+/* Lecture 92: Obtaining Macro variable values during DATA step with SYMGET Function
+
+The SYMGET function returns the value of an existing macro variable
+	- SYMGET(macro-variable)
+	- macro-variable can be specified as one of the following
+		- macro variable name enclosed in quotes
+		- DATA step variable name whose value is the name of a macro variable
+		- DATA step character expression whose value is the name of macro variable
+		
+*/
+
+
+PROC IMPORT datafile = "&home/score_data_id.xlsx"
+	dbms=xlsx
+	out=score_data
+	replace;
+RUN;
+
+
+*Creating a series of macro variables where the name is the concatenation of student and id
+ The value is the trimmed students name;
+DATA score_data1;
+	SET score_data;
+	CALL SYMPUT('student'||left(stu_id), trim(name));
+RUN;
+
+*Creating a new column based on the value of macro variables;
+DATA score_data2;
+	SET score_data;
+	*Returns the value of the macro variable with the name of 'student'stu_id;
+	student_name_fromMacro = SYMGET('student'||left(stu_id));
+RUN;
+
+PROC PRINT data=score_data2;
+RUN;
+
+
+
+/* Lecture 93: 	Creating Macro variables during proc SQL step: INTO Clause
+
+The INTO clause in the select statement allows you to create or update macro variables
+The print|noprint option specifies whether a select statement's results are displayed 
+in output
+
+	- SELECT column1, column2
+		INTO: macro-variable1, :macro-variable2
+	  FROM table1
+*/
+
+
+PROC IMPORT datafile = "&home/score_data_id.xlsx"
+	dbms=xlsx
+	out=score_data
+	replace;
+RUN;
+
+PROC SQL;
+	SELECT max(round(mean(score1, score2, score3), .1)),
+		   min(round(mean(score1, score2, score3), .1))
+	INTO :max_ave, :min_ave /*creating macro vars based on the values in the select statement*/
+	FROM score_data;
+QUIT;
+
+PROC PRINT data=score_data;
+	FOOTNOTE "Averages range from &min_ave to &max_ave";
+RUN;
+
+
+/* Lecture 94: Creating a series of related macro variables with the INTO Clause in PROC SQL
+
+Use the into clause to create a series of variables
+
+	- SELECT column1
+	INTO :macro-variable1 - macro-variablen
+*/
+
+PROC IMPORT datafile = "&home/score_data_id.xlsx"
+	dbms=xlsx
+	out=score_data
+	replace;
+RUN;
+
+*The macro variables sid1-sid3 are assigned values of the data set variable stu_id;
+*The macro variables stu_name1-stur_name3 are from the data set variable name;
+*Values are coming from the first 3 rows only;
+PROC SQL;
+	SELECT stu_id, name
+	INTO :sid1-:sid3,
+		 : stu_name1-:stu_name3
+	FROM score_data;
+	
+	*Printing out macro variables;
+	%put _user_;
+QUIT;
+
+
+
+/* Lecture 95: Creating one macro variable holding a delimited list of values with INTO clause
+
+Use an alternate form of the INTO clause to concatenate all values in a column and concatenate
+them into the value of one macro variable
+
+	- SELECT column1
+	  INTO :macro-variable-1
+	  Separated BY 'delimiter1'
+	- Removes leading and trailing blanks
+*/
+
+PROC IMPORT datafile = "&home/score_data_id_class.xlsx"
+	dbms=xlsx
+	out=score_data
+	replace;
+RUN;
+
+*Creating a macro variable "class_info" as a space delimited list of distinct classes;
+PROC SQL;
+	SELECT distinct class
+	INTO :class_info SEPARATED BY ' '
+	FROM score_data;
+QUIT;
+
+PROC MEANS data=score_data maxdec=0;
+	TITLE "Score Information from Classes &class_info";
+RUN;
