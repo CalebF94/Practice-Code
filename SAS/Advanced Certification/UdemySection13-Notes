@@ -1,0 +1,94 @@
+/* 
+Section 13: SAS MacroL Creating and Using Macro Programs
+	
+	Lectures:
+		98) Defining, compiling, and calling Macros
+		99) Developing and Debugging Macros with MPRINT and MLOGIC Options
+		100) Using Positional Macro Parameters
+		101) Using Keyword Macro Parameters
+		102) Using Mixed Macro Parameters
+		103) Processing macro statements conditionally using %if%THEN%ELSE% %DO%END
+		104) Processing Statements Interactively with the iterative %DO statement
+
+*/
+
+/* Lecture 98: Defining, Compiling, and Calling Macros
+
+Macro programs allow you to use conditional logic
+
+1) Macros are defined using the %MACRO and %MEND statements. The general format is:
+		%MACRO macro-name;
+			text
+		%MEND <macro-name - optional>
+		
+2) You must first compile a macro by submitting the macro definition
+	MCOMPILE option causes a note to be issued to the SAS log when a macro has been compiled
+	
+3) Calling Macros
+		A macro program is called and used in your SAS program by specifying a macro
+		name preceded with a percent sign. It requires no semicolon, a semicolon after a 
+		macro call might lead to errors
+*/
+
+%LET home=/home/u45038867/Udemy-AdvancedSAS/Data;
+
+PROC IMPORT datafile = "&home/score_data_id.xlsx"
+	DBMS=xlsx
+	out=score_data
+	replace;
+RUN;
+
+
+OPTIONS MCOMPILENOTE=ALL;*SAS will write note when a macro is compiled;
+
+*Defining a macro that prints the score_data dataset;
+%MACRO print;
+	PROC PRINT data=score_data;
+		TITLE "Input data";
+	RUN;
+%MEND print;
+
+%print
+
+
+/* Lecture 99: Developing and Debugging Macros with options: MPRINT and MLOGIC
+
+There are SAS system options that can display info about the execution of a macro
+in the SAS log
+
+1) The MPRINT Option:
+	- Text that is sent to the SAS compiler as a result of macro execution is printed
+		in the SAS log
+	- MPRINT|NOMPRINT
+	
+2) The MLOGIC Option
+	- Prints messages that indicate macro actions that were taken during macro execution
+	- MLOGIC|NOMLOGIC
+
+*/
+
+PROC IMPORT datafile = "&home/score_data_id.xlsx"
+	DBMS=xlsx
+	out=score_data
+	replace;
+RUN;
+
+OPTIONS MPRINT;*Print lines in macro program to the SAS log;
+
+%MACRO print;
+	PROC PRINT data=score_data;
+		TITLE "Input data on &sysdate";
+	RUN;
+%MEND print;
+
+%print
+
+
+OPTIONS MLOGIC;*Prints lines to SAS log when a macro is called;
+%MACRO print;
+	PROC PRINT data=score_data;
+		TITLE "Input data on &sysdate";
+	RUN;
+%MEND print;
+
+%print
