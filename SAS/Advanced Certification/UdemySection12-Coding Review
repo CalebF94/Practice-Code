@@ -1,0 +1,35 @@
+/* 
+Section 12: Coding Exercise
+
+	Data:
+		- sale_state.xlsx
+		
+	Instruction:
+		- import data
+		- create macro variable 'title' with value as 'report on sale in states' in a data step
+		- create two macro vars
+			1) max_ca with formula => max (round (mean (saleCA1, saleCA2, saleCA3 ),.1))
+			2) min_ca with formula => min (round (mean (saleCA1, saleCA2, saleCA3 ),.1))
+		- Print data with title including info provided by 3 macro variables created above
+*/
+
+PROC IMPORT datafile="/home/u45038867/Udemy-AdvancedSAS/Data/sale_state.xlsx"
+	dbms=xlsx
+	out=state
+	replace;
+RUN;
+
+%LET title=Report on Sale in States;
+
+PROC SQL NOPRINT;
+	SELECT 
+		max(round(mean(saleCA1, saleCA2, saleCA3),.1)), 
+		min(round(mean(saleCA1, saleCA2, saleCA3),.1))
+	INTO: max_ca, : min_ca
+	FROM state;
+QUIT;
+
+PROC PRINT data=state;
+	TITLE "&title";
+	FOOTNOTE "CA Minimum Sales: &min_ca  CA Maximum Sales: &max_ca";
+RUN;
