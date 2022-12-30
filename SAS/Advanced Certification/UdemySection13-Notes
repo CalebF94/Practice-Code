@@ -92,3 +92,215 @@ OPTIONS MLOGIC;*Prints lines to SAS log when a macro is called;
 %MEND print;
 
 %print
+
+
+
+/* Lecture 100: Positional Macro Parameters
+
+Parameters in the macro definition can be used to create macro variables local to the
+macro program. Positional parameters are specified int the order they are defined. The
+order used in the call has to be the same as the definition
+
+%MACRO macro-name(par1-<,...,parameter-n>);
+	text(to use parameters use &par1...&par2...)
+%MEND
+
+TO CALL
+%macro-name(value1<,...,value-n>)
+*/
+
+OPTIONS MPRINT MLOGIC; *For debugging;
+
+PROC IMPORT datafile = "&home/score_data_id.xlsx"
+	DBMS=xlsx
+	out=score_data
+	replace;
+RUN;
+
+*Defining the macro will take two parameters;
+%MACRO MeanOutputs(data, vars);
+	*Notice the parameters create macro vars that are called just like global variables;
+	PROC MEANS data=&data;
+		VARS &vars;
+		TITLE "Mean Statistics for &Vars";
+	RUN;
+%MEND MEanOutputs;
+
+%MeanOutputs(score_data, score1 score2 score3)
+		
+
+
+/* Lecture 101: Keyword Parameters in Macros
+
+Behave similar to positional parameters except in the definition you specify the name 
+followed by an equal sign. The value following the equal sign becomes the default value.
+Nulls are allowed
+
+%MACRO macro-name(kw1=par1-<,...,kwn=parameter-n>);
+	text(to use parameters use &par1...&par2...)
+%MEND
+
+*/
+
+
+OPTIONS MPRINT MLOGIC; *For debugging;
+
+PROC IMPORT datafile = "&home/score_data_id.xlsx"
+	DBMS=xlsx
+	out=score_data
+	replace;
+RUN;
+
+%MACRO MeanOutputs(data=score_data, vars=score1);
+	*For null defaults(data=score_data, vars=);
+	
+	PROC MEANS data=&data;
+		VARS &vars;
+		TITLE "Mean Statistics for &Vars";
+	RUN;
+	
+%MEND MEanOutputs;
+
+
+*The macro gets called in the same manner;
+%MeanOutputs(data=score_data, vars=score1 score2 score3)
+	
+*If we leave the arguments blank the default values are used;
+%MeanOutputs()
+
+
+
+
+
+/* Lecture 102: Mixed Parameters
+
+positionl arguments must be listed before keyword parameters
+
+*/
+
+
+OPTIONS MPRINT MLOGIC; *For debugging;
+
+PROC IMPORT datafile = "&home/score_data_id.xlsx"
+	DBMS=xlsx
+	out=score_data
+	replace;
+RUN;
+
+
+%MACRO MeanOutputs(vars, data=score_data);
+	*For null defaults(data=score_data, vars=);
+	
+	PROC MEANS data=&data;
+		VARS &vars;
+		TITLE "Mean Statistics for &Vars";
+	RUN;
+	
+%MEND MEanOutputs;
+
+%MeanOutputs(score1 score2 score3, data=score_data)
+
+
+/* Lecture 102: %IF%THEN%ELSE %DO%END
+
+%IF%THEN%ELSE %DO%END are used to conditionally execute code inside a macro program. These
+statements can only be used inside a Macro program.
+
+These statements work similar to the DATA step versions of the statements
+	- Note that %IF has to have a following %THEN. There is no subsetting if statement
+	- Each %DO statement is paired with an %END statement
+
+*/
+
+
+OPTIONS MPRINT MLOGIC; *For debugging;
+
+PROC IMPORT datafile = "&home/score_data_id_class.xlsx"
+	DBMS=xlsx
+	out=score_data
+	replace;
+RUN;
+
+
+*Macro program that makes a frequency table using the rows, columns and dataset provided
+by the user;
+%MACRO counts(cols=, rows=, data=score_data);
+	PROC FREQ data=&data;
+		tables
+			%IF &rows ne  %THEN 
+				%DO;
+					&rows * &cols;
+					TITLE "Two way Table for &data";
+				%END;
+			%ELSE 
+				%DO;
+					&cols;
+					TITLE "One way Table for &data";
+				%END;
+	RUN;
+%MEND counts;
+
+*Two way table;
+%counts(cols=gender, rows=class)
+
+*One way table;
+%counts(cols=gender)
+		
+
+
+
+/* Lecture 104: Processing Statements with the iterative %DO statement
+
+Iterative %DO statement
+	%DO index-var=start %TO stop <%BY increment>;
+		text
+	%END;
+	
+index-var is a macro variable
+only valid inside a macro definition
+*/
+
+*Creates a data set from each of the specified external files;
+OPTIONS MPRINT MLOGIC;
+%MACRO readraw(first=1, last=5);
+	
+	%LOCAL month;
+	%DO month=&first %TO &last;
+	
+		PROC IMPORT datafile="&home/score_month&month"
+			out=score_month&month
+			dbms=xlsx
+			replace;
+		RUN;
+		
+
+	%LOCAL mon_nm;
+	%IF &month=1 %THEN 
+		%DO; 
+			%LET mon_nm=January; 
+		%END; 
+	%ELSE %IF &month=2 %THEN
+		%DO; 
+			%LET mon_nm=February; 
+		%END;
+	%ELSE %IF &month=3 %THEN
+		%DO; 
+			%LET mon_nm=March; 
+		%END;
+	%ELSE %IF &month=4 %THEN
+		%DO; 
+			%LET mon_nm=April; 
+		%END;
+	%ELSE %IF &month=5 %THEN
+		%DO; 
+			%LET mon_nm=May; 
+		%END;
+
+		PROC PRINT data=score_month&month;
+			TITLE "Data for &mon_nm";
+		RUN;
+	%END;
+%MEND readraw;
+
+%readraw()
+
