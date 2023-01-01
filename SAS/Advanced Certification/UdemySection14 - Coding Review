@@ -1,0 +1,46 @@
+/* 
+Section 14: Coding Exercise
+	
+	Data:
+		funrun.xlsx
+		
+	Instructions:
+		1) import funrun.xlsx to create SAS dataset FR
+		2) 
+			- Create simple index using variable stu_id
+			- Create a composite index using variable stu_id and class
+			- Drop the simple index created from variable stu_id
+		
+
+*/
+
+%LET home=/home/u45038867/Udemy-AdvancedSAS/Data;
+
+*Using PROC SQL;
+PROC IMPORT datafile="&home/FunRun.xlsx"
+	dbms=xlsx
+	out=FR
+	replace;
+RUN;
+
+PROC SQL;
+	CREATE INDEX stu_id ON FR;
+	CREATE INDEX sid_class ON FR(stu_id, class);
+	DROP INDEX stu_id FROM FR;
+QUIT;
+
+
+
+*Using PROC DATASETS;
+PROC IMPORT datafile="&home/FunRun.xlsx"
+	dbms=xlsx
+	out=FR
+	replace;
+RUN;
+
+PROC DATASETS library=work nolist;
+	MODIFY FR;
+	INDEX CREATE stu_id;
+	INDEX CREATE sid_class=(stu_id class);
+	INDEX DELETE stu_id;
+QUIT;
