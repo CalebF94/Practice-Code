@@ -1,0 +1,69 @@
+/* 
+Section 15: Advanced Techniques and Efficiencies: Combining Data Vertically
+
+	Lectures:
+		112) Using the FILENAME statement
+		113) Using the FILEVAR = option
+
+*/
+
+%LET home=/home/u45038867/Udemy-AdvancedSAS/Data;
+
+/* Lecture 112: Using the FILENAME Statement
+
+Vertically combining data refers to concatenating or interleaving data
+
+You can use the FILENAME statement to concatenate raw data files by assigning a
+single fileref to the raw data files that you want to combine.
+
+General Form:
+	FILENAME fileref (external-file1 external-file2);
+	- all file specifications must be enclosed in one set of parentheses
+	- When used in an infile statement, the fileref will sequentially read the files
+	  into a dataset using an INPUT statement
+*/
+
+*There are three datafiles to combine;
+filename score ("&home/score_month1.txt"
+				"&home/score_month2.txt"
+				"&home/score_month3.txt");
+				
+DATA score123;
+	*All three files will get concatenated vertically;
+	INFILE score;
+	INPUT name $ score month $;
+RUN;
+
+
+
+/* Lecture 113: Using the FILEVAR = option
+
+Concatenating raw files can be more flexible by using the FILEVAR= option
+
+General Form:
+	INFILE file-specification FILEVAR=variable
+		- FILEVAR= names a variable whose change in value causes the INFILE statement to 
+		  close the current input file and open a new input file
+		-variable contains a character string that is a physical filename
+		-file-specification is a placeholder that had been assigned previously to a file
+		   SAS uses this placeholder for reporting processing information to the SAS log.
+*/
+
+*using the same FILENAME statement from previous lecture;
+DATA score123_;
+	INFILE datalines;
+	length rfile $60;
+	INPUT rfile $;
+	INFILE PH filevar=rfile end=lastobs;
+	DO UNTIL (lastobs);
+		INPUT name $ score month $;
+		OUTPUT;
+	END;
+	
+	DATALINES;
+		&home/score_month1.txt
+		&home/score_month2.txt
+		&home/score_month3.txt
+	;
+RUN;
+
