@@ -1,0 +1,115 @@
+/* 
+Section 14: Advanced Techniques and Efficiencies: Indexes
+	
+	Lectures:
+		107) Overview & Create Indexes in Data Step
+		108) Managing Indexes with PROC DATASETS
+		109) Managing Indexes with PROC SQL
+
+*/
+
+/* Lecture 107: Overview & Create Indexes in Data Step
+
+Indexes help you quickly locate one or more observations. Indexes provide direct access to 
+observations based on values of key variables. Without an index, SAS accesses observations
+sequentially in the order in which they are stored
+
+1) Simple Index: Consists of one key variable which can be numeric or character. SAS names the 
+	index after the key variable
+
+2) Composite Index: Consists of multiple key variables which can be character, numeric, or a 
+	combination. The values of these key variables are concatenated to form a single value. You
+	must specify a unique index name that is not the name of any existing varible or index in 
+	the dataset
+*/
+
+%LET home=/home/u45038867/Udemy-AdvancedSAS/Data;
+LIBNAME score "&home";
+
+OPTIONS MSGLEVEL=I;* Tells SAS to print additional INFO messages to log;
+
+
+* The DATA step below creates two simple indexes on the sd1 dataset. stu_id, which 
+   contains only unique values of the stu_id column, and name;
+DATA sd1 (index=(stu_id/unique name));
+	SET score.score_data;
+RUN;
+
+PROC PRINT data=sd1;
+	WHERE stu_id in (3, 7);
+	* B/C of the index, SAS can directly access the students with IDs 3 and 7.
+	  This is more efficient than sequentially searching for the observations;
+RUN;
+
+
+*The step below creates a composite index based on stu_id and name. The index contains
+ concatenated values of stu_id and name;
+DATA sd2 (index=(sid_name=(stu_id name)));
+	SET score.score_data;
+RUN;
+
+
+
+
+/* Lecture 108: Managing Indexes with PROC DATASETS
+
+DATASETS procedure can be used to manage indexes on an existing data set. This is more
+efficient than rebuilding the data set
+
+General Form of he PROC DATASETS:
+	PROC DATASETS LIBRARY=libref <nolist>
+		MODIFY ;
+		INDEX DELETE ;
+		INDEX CREATE ;
+	QUIT;
+	
+INDEX CREATE can only be used is the index does not already exist. You must delete the 
+existing index of the same name and then create the index since PROC DATASETS executes 
+statements in order
+*/
+
+OPTIONS MSGLEVEL=I;
+
+DATA sd1 (index=(stu_id/unique name));
+	SET score.score_data;
+RUN;
+
+*The example below deletes the stu_id index and creates two new indexes: stu_id (simple) 
+and sid_name(composite) on the sd1 dataset;
+PROC DATASETS library=work nolist;
+	MODIFY sd1;
+	INDEX DELETE name stu_id;
+	INDEX CREATE stu_id/unique;
+	INDEX CREATE sid_name = (stu_id name);
+QUIT;
+
+
+
+/* Lecture 109: Managing Indexes using PROC SQL
+
+The CREATE INDEX statement enables you to create an index
+The DROP INDEX statement enables you to delete an index form a data set
+
+General Form of PROC SQL:
+
+	PROC SQL;
+		CREATE <UNIQUE> INDEX index-name
+			ON table-name(col1, col2,...)
+			
+		DROP INDEX index-name FROM table-name;
+	QUIT;
+	
+	
+	- index-name is the same as col1 if simple index
+*/
+
+PROC SQL;
+	CREATE INDEX stu_id on score.score_data;
+	DROP INDEX stu_id from score.score_data;
+	CREATE INDEX sid_name on score.score_data(stu_id, name);
+QUIT;
+
+*Restting the dataset back to it's original form;
+PROC SQL;
+	DROP INDEX sid_name FROM score.score_data;
+QUIT;
