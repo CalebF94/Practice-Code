@@ -1,0 +1,71 @@
+/* 
+Section 13: SAS Macro: Coding Exercise
+	
+	Data:
+		- Score_Month1.xlsx through Score_Month5.xlsx
+		
+	Instructions:
+		1) Create macro program uisng positional parameters to import five Excel
+			data files into SAS
+		2) Create macro program using keyword parameters to calculate mean of variable
+			'Score' in each dataset
+		3) Use SAS system options MPRINT MLOGIC to display information about the execution
+			of a macro in the SAS log
+		4) Using %DO loop create same score mean outpus from 5 data sets as #2
+
+*/
+
+
+%LET home=/home/u45038867/Udemy-AdvancedSAS/Data;
+
+OPTIONS MPRINT MLOGIC;
+
+%MACRO read_data(fname);
+
+	%LOCAL num_f;*number of files to read;
+	%LOCAL fcur;*variable for file currently being read in. used in loop;
+
+	*Counts the number of words(files) in parameter;
+	%LET num_f = %SYSFUNC(COUNTW("&fname"));
+	
+	*Looping across files and importing;
+	%DO f=1 %TO &num_f;
+		*setting name of current file;
+		%LET fcur = %SYSFUNC(SCAN(&fname, &f));
+		
+		PROC IMPORT datafile = "&home/&fcur..xlsx"
+			dbms=xlsx
+			out=&fcur
+			replace;
+		RUN;
+	%END;
+	
+%MEND read_data;
+
+
+%MACRO calc_mean(dataset=, vars=);
+	
+	%LOCAL i next_name;
+	%LET i=1;
+	
+	%DO %WHILE (%SCAN(&dataset, &i) ne );
+		
+		%LET next_name=%SCAN(&dataset, &i);
+		
+		PROC MEANS data=&next_name MEAN MAXDEC=2;
+			TITLE "Mean value for &next_name dataset";
+			VAR &vars;
+		RUN;
+		
+		%LET i = %EVAL(&i + 1);
+		
+	%END;
+
+%MEND calc_mean;
+
+
+*Running the macros;
+%LET d=score_month1 score_month2 score_month3 score_month4 score_month5;
+%read_data(&d)
+%calc_mean(dataset = &d, vars=score)
+
