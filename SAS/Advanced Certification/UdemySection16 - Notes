@@ -1,0 +1,118 @@
+/* 
+Section 16: Combining Data Horizontally
+
+	Lectures:
+		116) Combine Summary Data and Detail Data Conditionally with multiple SET statements
+		117) Combine Data with Multiple SET Statements with KEY= option: Using an Index
+		118) Using Hash Objects as Lookup Tables
+
+*/
+
+
+/* Lecture 116: Conditionally combine data using multiple SET statements
+
+In the example below, we want to calculate the percentage of each employee's sale to the
+total sale for each month
+
+1) Use PROC MEANS to calculate the total sale for each month
+2) Combine the total sale info with the input sale data
+3) calculate the % = each employee's sale for each month / total sale for each month
+*/
+
+%LET home=/home/u45038867/Udemy-AdvancedSAS/Data;
+
+PROC IMPORT datafile="&home/sale_m123.xlsx"
+	DBMS=xlsx
+	out=sale0
+	replace;
+RUN;
+
+*Here we use PROC MEANS to calculate and output a SAS dataset containing the sum of all
+three variables;
+PROC MEANS data=sale0 noprint;
+	var sale_m1 sale_m2 sale_m3;
+	
+	*Creating a SAS dataset based on the sum of the variables;
+	OUTPUT out=summary sum=salesum_m1 salesum_m2 salesum_m3;
+RUN;
+
+PROC PRINT DATA=summary;
+RUN;
+
+*Now we combine the data conditionally;
+DATA sp;
+	*IF first iteration bring in summarized data. Values are retained;
+	IF _N_=1 THEN SET summary(keep=salesum_m1 salesum_m2 salesum_m3);
+	
+	*Bringing in the individual data and calculating percent;
+	SET sale0;
+	PctSale_m1 = sale_m1/salesum_m1;
+	PctSale_m2 = sale_m2/salesum_m2;
+	PctSale_m3 = sale_m3/salesum_m3;
+	
+	FORMAT PctSale_m1 PctSale_m2 PctSale_m3 percent10.2;
+RUN;
+
+PROC PRINT DATA=sp;
+RUN;
+
+
+
+/* Lecture 117: KEY=option and using an Index
+
+You can use the SET statements to only read matching observations. USing index makes this
+more efficient
+
+SET Sas-data-set-name KEY=index-name;
+
+To use the SET statement with KEY= option to perform a lookup operation, your lookup 
+values must be stored in a SAS data set that has an index. This technique is appropriate
+only when you are working with one-to-one matche, with a lookup table of any size
+
+*/
+OPTIONS MSGLEVEL=I;
+
+*Smaller data set. only contains a fourth score for some students;
+PROC IMPORT datafile="&home/score_data_id_partial_score4_extra.xlsx"
+	DBMS=xlsx
+	out=sdp(keep=stu_id name score4)
+	replace;
+RUN;
+
+*Larger data set. Contains 3 scores for all students;
+PROC IMPORT datafile="&home/score_data_id.xlsx"
+	DBMS=xlsx
+	out=sda(index=(sid_name=(stu_id name)))
+	replace;
+RUN;
+
+*Combine the two datasets using multiple SET statements;
+
+DATA sd_all0;
+	SET sdp;
+	SET sda key=Sid_name;
+	score_average=mean(score1, score2, score3, score4);
+RUN;
+	
+
+
+
+DATA sd_all1 non_match;
+	SET sdp;
+	SET sda key=Sid_name;
+	
+	*_iorc_ is a system variable that is created when using the key= in SET. IF the value 
+	 is 0 a match was found;
+	IF _iorc_ = 0 THEN DO;
+		*Calculate our new variable and output to matched obs;
+		score_average=mean(score1, score2, score3, score4);
+		output sd_all1;
+	END;
+	ELSE DO;
+		*If _iorc_indicated error, we change error back to 0 to avoid writting error 
+		 to log. Then we output record to the non_match dataset;
+		_error_=0;
+		output non_match;
+	END;
+RUN;
+
