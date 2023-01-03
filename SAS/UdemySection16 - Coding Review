@@ -1,0 +1,43 @@
+/* 
+Section 16: Coding Exercise
+
+	Data:
+		- score_data.xlsx --> Import and generate data SD0
+		
+	Instruction:
+		- Create 3 score vars' means
+		- Bring/combine 3 score means to the data SD0
+*/
+
+%LET home=/home/u45038867/Udemy-AdvancedSAS/Data;
+
+*Importing data;
+PROC IMPORT datafile="&home/score_data.xlsx"
+	out=sd0
+	dbms=xlsx
+	replace;
+RUN;
+
+*Creating the summarized(means) dataset for each score variable
+ The results are stored in a data set called var_avgs;
+PROC MEANS data=sd0 mean maxdec=1;
+	VARS score1 score2 score3;
+	output out=var_avgs (keep=score:) mean=score1_avg score2_avg score3_avg;
+RUN;
+
+PROC PRINT data=var_avgs;
+RUN;
+
+*Combining sd0 and the summarized table;
+DATA sd_cbd;
+	IF _N_ = 1 THEN DO;
+		SET var_avgs;
+	END;
+	
+	SET sd0;
+RUN;
+
+PROC PRINT data=sd_cbd;
+	TITLE 'Combined Data';
+RUN;
+	
