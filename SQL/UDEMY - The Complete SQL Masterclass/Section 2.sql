@@ -69,7 +69,7 @@ WHERE (customer_id IN (12, 25, 67, 93, 124, 234))
 	   AND (payment_date BETWEEN '2020-01-01' AND '2020-01-31 23:59')
 	   AND (amount IN (4.99, 7.99, 9.99));
 
-
+-------------------------------------------------------------------------------
 -- Challenge: LIKE
 -- Notes: '_' matches any single character. '%' matches any number of chars
 --        Like is case sensitive. ILIKE is case insensitive
@@ -87,6 +87,29 @@ WHERE (first_name LIKE '___')
 	AND (last_name LIKE '%Y' OR last_name LIKE '%X');
 
 
+-------------------------------------------------------------------------------
+-- Final Challenges
+-- 
+-- How many movies contain 'Saga' in the description and the title starts with 
+-- either 'A' or end with 'R'? Use the alias 'No_of_Movies' (14)
+SELECT COUNT(*) AS no_of_movies
+FROM film
+WHERE (description LIKE '%Saga%')
+	AND (TITLE LIKE 'A%' OR title LIKE '%R');
+
+-- List of customers where first name contains 'ER' and has an 'A' as the 2nd
+-- letter. Order results by the last name descending. (5 rows)
+SELECT * 
+FROM customer
+WHERE (first_name LIKE '%ER%') AND (first_name LIKE '_A%')
+ORDER BY last_name DESC;
+
+-- How many payments with amount of either 0 or between 3.99 and 7.99 and occurred
+-- on 2020-05-01?
+SELECT *
+FROM payment
+WHERE ((amount = 0) OR (amount BETWEEN 3.99 AND 7.99)) 
+	AND (payment_date BETWEEN '2020-05-01' AND '2020-05-02');
 
 
 
