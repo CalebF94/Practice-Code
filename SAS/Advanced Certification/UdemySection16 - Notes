@@ -116,3 +116,82 @@ DATA sd_all1 non_match;
 	END;
 RUN;
 
+
+
+/* Lecture 118: Using Hash Objects as Lookup Tables
+
+Hash objects provides an efficient and convenient mechanism for data storage and retrieval.
+Resembles a table with rows and columns and contains a key component and a data component
+
+Hash objects must be declared and created before being used
+
+Declaring Hash objects
+	- Use the DECLARE statement
+	
+Defining Keys and data
+	- Data step variables that you use to initialize the hash object by using dot notation
+	
+KEy Component
+	- defined by passing the key variable name to the DEFINEKEY method
+	
+Data Component
+	- defined by passing the data variable name to the DEFINEDATA method
+*/
+
+
+PROC IMPORT datafile = "&home/Sale_one sale_extra.xlsx"
+	dbms=xlsx
+	out=s1
+	replace;
+RUN;
+
+PROC IMPORT datafile = "&home/Sale_one sale.xlsx"
+	dbms=xlsx
+	out=s0
+	replace;
+RUN;
+
+*creates an average sale report for each state;
+PROC MEANS data=s0 noprint;
+	CLASS state;
+	VARS sale;
+	output out=summary(keep=state saleaverage) mean=saleaverage;
+RUN;
+
+*Cleaning the summary dataset created in the previous step;
+*when we create our hash object state -- key variable, saleaverage -- data variable;
+DATA summary;
+	SET summary;
+	saleaverage = ROUND(saleaverage, 1);
+	WHERE state ne ' ';
+RUN;
+
+DATA salereport;
+	if _N_ = 1 THEN DO;
+		*ON the first iteration we declare and create a hash object;
+		*Creating a has object called ag that is based on the dataset 
+		 named summary that we created in the previous data step;
+		DECLARE hash ag (dataset: 'summary');
+			ag.definekey("state");
+			ag.definedata('saleaverage');
+			ag.defineDone();
+		* The call missing() prevents errors for unitialized variables by filling the v
+		  value with missing values. IE saleaverage will be populated with missing values;	
+		call missing(Saleaverage);
+	END;
+	
+	*Bringing in columns from s1 dataset;
+	set s1;
+	
+	*The find method retrieves matching data from the hash object. RC is 
+	 return code. a zero indicates a successful find;
+	RC=ag.find();
+	Diff = sale - saleaverage;
+	if diff >=0 THEN performance = "above or equal to average";
+	if diff<0 THEN performance = 'below average';
+RUN;
+
+PROC PRINT data=salereport;
+	TITLE 'Sales Report';
+RUN;
+
