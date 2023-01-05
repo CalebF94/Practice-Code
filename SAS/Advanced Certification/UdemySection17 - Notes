@@ -1,0 +1,85 @@
+/* 
+Section 17: Advanced Techniques: Formats & Arrays
+
+	Lectures:
+		121) Creating Custom Formats Using the PICTURE Statement
+		122) Stored Custom Formats permanently & Manage it with FMTSEARCH= system option
+		123) Use Formats to create data via lookups
+		124) Using the ARRAY Statement to Combine Data
+		125) Processing Data with Multiple Dimensional Arrays
+
+*/
+
+/* Lecture 121: Creating Custom Formats Using the Picture Statement
+
+Value statement can associate a text label with a discrete numeric or character value
+
+Use the PICTURE statement to create a template for printing numbers(think $12,232.98)
+
+General Format:
+	PROC FORMAT;
+		PICTURE format-name
+			value-or-range='picture'
+			
+	RUN;
+	
+Picture are specified with 3 types of characters:
+	1) digit selectores: are numerals (0 through 9) that define positions for numbers.
+		Using nonzero digit selectors will add zeros to the formatted value as needed. 
+		Zeros as digit selectors will not add leading zeros to formatted value
+	
+	2) message characters: non-numeric characters that are printed as specified in the 
+			picture. Inserted into the picture after the numeric digits are formatted.
+			Digit selectors must come before message characters in the picture defn.
+	
+	3) Directives: special characters for date, time or datetime values. must specify the
+	       DATATYPE= option
+*/
+
+
+%LET home=/home/u45038867/Udemy-AdvancedSAS/Data;
+
+DATA PHONE;
+	INPUT phone_number;
+	DATALINES;
+4089813212
+3427893456
+7896542231
+4123467863
+6457845632
+;
+RUN;
+
+*We will format the numbers as (###)###-####;
+PROC FORMAT;
+	PICTURE phone_f (default=20)/*default length for pictue is 20*/
+		low-high = '999) 999-9999 Cell'/*low-high: format will apply to all non-missing values*/
+		(prefix = '(');*prefix has to come after digit selectors;
+RUN;
+
+PROC PRINT data=phone;
+	format phone_number phone_f.;*Apply just like a format;
+RUN;
+
+
+*Use directives to give birthday a new format: Mar 12, 1999;
+PROC IMPORT datafile = "&home/score_data_miss_birthdate.xlsx"
+	DBMS=xlsx
+	out = bd (keep=name birthdate)
+	replace;
+RUN;
+
+PROC FORMAT;
+	PICTURE bd_f (default=20)
+		low-high = '%b %d, %Y' (datatype=date);
+RUN;
+
+PROC PRINT data=bd;
+	FORMAT birthdate bd_f.;
+RUN;
+
+
+
+/* Lecture 122: Storing Custom formats permanently & manage it with FMTSEARCH= system option
+
+*/
