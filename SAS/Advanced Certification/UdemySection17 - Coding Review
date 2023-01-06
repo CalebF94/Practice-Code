@@ -1,0 +1,29 @@
+/* 
+Section 17: Coding Exercise
+
+Data:
+	Datalines
+	
+Instructions:
+	We want sales amounts (values of var Money) to be displayed like
+		Sale Amount: 1000 for this month
+*/
+
+DATA SALE;
+INPUT Money;
+DATALINES;
+1000
+1200
+700
+900
+1800
+;
+
+PROC FORMAT;
+	PICTURE 
+		mone low-high= '0,000 for this month' (prefix='Sale Amount: $');
+RUN;
+
+PROC PRINT data=SALE;
+	FORMAT money mone.;
+RUN;
