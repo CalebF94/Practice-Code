@@ -80,6 +80,124 @@ RUN;
 
 
 
-/* Lecture 122: Storing Custom formats permanently & manage it with FMTSEARCH= system option
+/* 
+123) Use Formats to create data via lookups
 
+FORMAT procedure uses a binary search method
+
+Lookup/return value: The data value or values that are retrieved from the lookup table
+or tables during a horizonatal combination. Sometimes lookup values that are not stored
+in a SAS data set. You can use techniques to hardcode lookup values into your program
 */
+
+DATA teacherid;
+INPUT tid;
+DATALINES;
+201
+202
+203
+204
+;
+RUN;
+
+*THe following PROC FORMAT step uses a VALUE statement to hardcode the lookup value
+in the BIRTHDATAE format;
+PROC FORMAT;
+	VALUE birthdate 201='01JAN1980'
+					 202='08AUG1971'
+					 203='23MAR1965'
+					 204='17JUN1973';
+RUN;
+
+
+*This DATA step uses the PUT function to associate the birthday lookup values format with
+the values tid. It is a process of numeric to character conversion;
+* The INPUT function associates the lookup value with the DATE9. informat, and assigns the
+formatted values to a new variable named Birthdate;
+
+DATA teacherid_b;
+	SET teacherid;
+	
+	*Creating a new column using numeric to character conversion;
+	B_C=PUT(tid, birthdate.);
+	
+	*Creating a new column using character to numeric conversion;
+	Birthdate_n=INPUT(B_C, date9.);
+	
+	*Assigning a format to the numeric variable;
+	FORMAT Birthdate_n date7.;
+	
+RUN;
+
+/*
+124) Using the ARRAY Statement to Combine Data
+ 
+We can hardcode the lookup values using ARRay to combine data
+*/
+
+DATA teacherid;
+INPUT tid;
+DATALINES;
+201
+202
+203
+204
+;
+RUN;
+
+*Bring in teacher birthday info;
+
+DATA teacherid_d;
+	SET teacherid;
+	
+	* we will use the array statement to create a temporary array;
+	ARRAY bd{201:204} _temporary_ ('01JAN1980'd, '08AUG1971'd, '23MAR1965'd, '17JUN1973'd);
+
+	*Assignment statement that retrieves the birthdate from the array;
+	Birthdate=bd{tid};
+	FORMAT Birthdate date7.;
+RUN;
+
+
+
+/*
+125) Processing Data with Multiple Dimensional Arrays
+
+To define multi-dimensional array, specify the number of elements in each dimension separated
+by a comma.
+	- ARRAY new{3,4} x1-x12;
+The first dimension specifies the number or rows. The second dimension specifies the 
+number of columns
+
+Reference an element by specifying the two dimensions in parenthesis
+	-new(2,3)
+*/
+
+PROC IMPORT datafile="&home/monthly.xlsx"
+	dbms=xlsx
+	out=monthly
+	replace;
+RUN;
+
+*We want to create a new dataset with quarterly sales rather than months;
+DATA quarters(drop=i j);
+	SET monthly;
+	array m{4,3} month1-month12;
+	
+	array qtr{4};
+	
+	DO i=1 to 4;
+		qtr{i} = 0;
+		DO j=1 to 3;
+			qtr{i} = qtr{i} + m{i,j};
+		END;
+	END;
+RUN;
+		
+PROC PRINT data=quarters (keep = year qtr1-qtr4);
+	TITLE "Quarterly Sales";
+RUN;
+
+
+
+
