@@ -1,0 +1,197 @@
+/* 
+Section 19: Advanced Techniques: Controlling Data Storage Space
+
+	Lectures:
+		131) Reducing Length for Numeric Variables
+		132) Compressing Data Files
+		133) Use SAS data steps views to conservere data storage space
+
+*/
+
+%LET home=/home/u45038867/Udemy-AdvancedSAS/Data;
+
+/*
+Lecture 131: Reducing length for Numeric Variables  
+
+You can reduce length of numeric variables to save storage space
+
+SAS stores all numeric values using double-precision floating point representation
+SAS numeric variables have a maximum length of 8 bytes and minimum length of 2 or 3 bytes 
+depending on operating system
+
+Assigning Lengths to Numeric Variables
+	- Use the LENGTH statement to assign a length from 2 to 8 bytes
+	- Length statement only affects the length of a numeric variable in the output data set
+	- In the PDV the length is always 8 bytes
+	- GEneral form: 
+		LENGTH variable-names length , <default=n>;
+			: default changes the default number of bytes used to create new variables
+*/
+
+PROC IMPORT datafile="&home/score_data_id.xlsx"
+	dbms=xlsx
+	out=sd
+	replace;
+RUN;
+
+*THis program assigns a length of 4 to new variables. The new length does not apply to the
+variables that are read from the SD data set;
+DATA sd1;
+	LENGTH default=4;
+	SET sd;*These variables won't be affected by the LENGTH statement;
+	
+	*average_score will have a length of 4;
+	average_score=mean(score1, score2, score3);
+RUN;
+
+
+/* 
+Specifying a value of less than 8 in the LENGTH statement causes the number to be truncated 
+to the specified length when the value is written to the SAS data set
+
+You should never use the LENGTH statement to reduce the length of non-integer numeric values.
+Fractional numbers lose precision when truncated. Reducing the length limits the integer
+values that can be stored
+
+You can use the PROC COMPARE procedure to check if you have lost precision
+The procedure compares the contents of two SAS data sets (one with the modified length, one
+without length modified). The General form is :
+	PROC COMPARE base=sas-data-set1
+				 compare=SAS-data-set2;
+	RUN;
+	
+PROC COMPARE is a good technique to use for gauging the loss of precision in the shortended 
+numeric variables
+*/
+
+DATA sd_;
+	*LENGTH default=4;*Length is not set so the default length will be 8;
+	SET sd;*These variables won't be affected by the LENGTH statement;
+	
+	*average_score will have a length of 4;
+	average_score=mean(score1, score2, score3);
+RUN;
+
+*Now we compare sd_ and sd1;
+PROC COMPARE base=sd1 compare=sd_;
+RUN;
+
+
+
+/*
+Lecture 132: Compressing Data Files
+
+By default SAS data files are uncompressed. 
+
+Sometimes compression of files can save disk space, but not all files are good candidates for
+file compression. When SAS reads a compressed file, each observation must be uncompressed which
+requires more CPU resources.
+
+Compression can be beneficial if the data file has one or more of the following properties:
+	1) It is large
+	2) it contains many large character values
+	3) it contains many values that have repeated characters or binary zeros
+	4) Contains many missing values
+	5) contains repeated values in variables that are physically stored next to one another
+	
+Use the COMPRESS= system option to compress all data files in a session
+Use the COMPRESS= data set option to compress a single data file. Note the data set option 
+overwrites the system option. 
+
+The choices for the COMPRESS=(NO|YES|CHAR|BINARY). Default is NO
+*/
+
+*data sashelp.bei contains lots of missing ;
+data bei_compressed (compress=char);*22.22% reduction;
+	set sashelp.bei;
+RUN;
+
+data bei_compressed (compress=binary);*44% reduction;
+	set sashelp.bei;
+RUN;
+
+
+/*
+Another option to compress data is to use the POINTOBS= data set option with the compress= option
+
+DATA SAS-DATA-set (COMPRESS=YES|CHAR|BINARY POINTOBS=YES|NO)
+	-YES allows random access to the data set and is the default
+	-NO does not allow random access to the data set
+*/
+data bei_compressed (compress=binary pointobs=no);*47% reduction;
+	set sashelp.bei;
+RUN;
+
+
+/*
+THe third way to compress data is to use the REUSE= dataset or system option
+
+This option specifies whether SAS should reuse space in a compressed file when obs are added
+or updated.
+
+System option:
+	OPTIONS REUSE=NO|YES
+	
+Data Set Option:
+	DATA sas-data-set (COMPRESS=YES|NO REUSE=NO|YES);
+	
+NO is the default in both options
+  */
+ 
+DATA bei_compressed (compress=binary reuse=yes);
+	set sashelp.bei;
+RUN;
+
+
+
+/*
+Lecture 133: Use SAS data steps vies to conserve data storage space
+
+You can save disk space by leaving data in its original location and use a SAS data view to
+access it.
+
+SAS data files and SAS data views are both types of SAS data sets
+	files contain both descriptor info and the data
+	views only contain descriptor info and instruction on how to retrieve data stored elsewhere
+	
+The difference between data files and data views is where the data is stored. 
+
+General REcommendation:
+*Create a SAS DATA step view to avoid storing a SAS copy of a raw data file
+*Use a SAS DATA step view if the content, but not structure, of the flat file is dynamic
+*Create a DATA step view to combine multiple SAS data sets with a merge or concatenation
+*Create a DATA step view to access frequently used subsets
+
+*/
+
+*To create a DATA step view, specify the VIEW=option after the final DATA set name in the
+DATA statement.
+
+The VIEW= option tells SAS to compile but not execute the source program and to store the 
+compiled code in the DATA step view that is named in the option;
+
+filename score ("&home/score_month1.txt"
+				"&home/score_month2.txt"
+				"&home/score_month3.txt"
+				"&home/score_month4.txt"
+				"&home/score_month5.txt");
+				
+data scoreall / view=scoreall;*scoreall is the name of the view;
+	infile score;
+	input name $ score month $;
+RUN;
+
+PROC import datafile="&home/score_data_id_class"
+	dbms=xlsx
+	out=sd0 (keep= name stu_id gender class)
+	replace;
+RUN;
+
+*Joining the two tables above;
+PROC SQL;
+	create table sdm as
+	SELECT a.name, score, month, gender, stu_id, class
+	FROM sd0 as s right join scoreall as a 
+		on s.name=a.name;
+QUIT;
+
