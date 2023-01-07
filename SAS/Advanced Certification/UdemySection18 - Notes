@@ -1,0 +1,55 @@
+/* 
+Section 18: Advanced Techniques and Efficiencies: Perform Effective Benchmarking
+
+	Lecture 129: Use SAS system options to track resources
+	Lecture 130: Use SAS system options to track resources
+*/
+
+
+/*
+Lecture 129: Use SAS system options to track resources
+ 
+You can specify options such as 
+	STIMER: Prints real time and CPU time in log
+	MEMRPT:
+	FULLSTIMER: Provides additional statistics such as memory usage
+	STATs:
+
+*/
+
+OPTIONS STIMER;
+DATA teacherid;
+	datalines;
+201
+202
+203
+204
+;
+RUN;
+
+OPTIONS NOSTIMER;
+
+
+OPTIONS FULLSTIMER;
+DATA teacherid;
+	datalines;
+201
+202
+203
+204
+;
+RUN;
+OPTIONS NOFULLSTIMER;
+
+
+
+/*
+Lecture 130: Using Benchmarks to Compare Techniques
+
+
+*/
+
+
+
+
+
