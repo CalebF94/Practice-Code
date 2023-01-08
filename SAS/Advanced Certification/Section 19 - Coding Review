@@ -1,0 +1,42 @@
+/* 
+Section 19: Coding Review
+
+	Data:
+		sale_m1.txt
+		sale_m2.txt
+		sale_m3.txt
+		sale_extra vars.xlsx
+		
+	Instructions:
+		1) create a data step view that concatenates the .txt files using FILENAME and INFILE
+		2) merge sale_extra vars.xlsx with the data step view to bring in more vars to the final
+		   output data containing all obs from 3 .txt files using proc sql
+*/
+
+%LET home=/home/u45038867/Udemy-AdvancedSAS/Data;
+
+*Creating a SAS data  step view that concatenates the three text files;
+FILENAME sale ("&home/sale_m1.txt"
+			   "&home/sale_m2.txt"
+			   "&home/sale_m3.txt");
+			   
+DATA sale0 / view=sale0 ;
+	INFILE sale;
+	INPUT ID State $ val;
+RUN;
+
+*Importing xlsx file and merging with the view;
+PROC IMPORT datafile="&home/sale_extra vars.xlsx"
+	dbms=xlsx
+	out=sale_ex
+	replace;
+RUN;
+
+
+PROC SQL;
+	CREATE TABLE comb AS
+	SELECT 
+		s.id, s.state, s.val, ex.name, ex.gender
+	FROM sale0 as s LEFT JOIN sale_ex as ex
+		ON s.id = ex.emid;
+QUIT;
