@@ -79,6 +79,68 @@ GROUP BY seat_no
 ORDER BY avg_amount DESC;
 	
 	
+/*
+CHALLENGE: JOINS ON MULTIPLE TABLES
+
+-- We want the scheduled departure for every ticket number
+
+tickets => ticket_flights => flights
+*/
 	
+SELECT 
+	t.ticket_no,
+	t.passenger_name,
+	tf.flight_id,
+	f.scheduled_departure
+FROM tickets as t 
+	LEFT JOIN ticket_flights as tf
+		ON t.ticket_no = tf.ticket_no
+	LEFT JOIN flights as f
+		ON tf.flight_id = f.flight_id
+ORDER BY ticket_no;
+
+
+/*
+CHALLENGE: More Challenges Section Question 1
+
+-- Which passenger (passenger name) has spent most amount in their bookings.
+*/
+SELECT 
+	t.passenger_name,
+	SUM(tf.amount) as amount
+FROM tickets as t
+	LEFT JOIN ticket_flights as tf
+		ON t.ticket_no = tf.ticket_no
+GROUP BY passenger_name
+ORDER BY amount DESC;
+
+
+/*
+CHALLENGE: More Challenges Section Question 2
+
+-- Which fare_condition has ALEKSANDR IVANOV used the most
+*/
+SELECT 
+	passenger_name,
+	COUNT(*) as count,
+	tf.fare_conditions
+FROM  tickets as t
+	INNER JOIN ticket_flights as tf
+		ON t.ticket_no = tf.ticket_no
+WHERE t.passenger_name = 'ALEKSANDR IVANOV'
+GROUP BY tf.fare_conditions, passenger_name
+ORDER BY count DESC;
 	
+---Given solution
+    SELECT passenger_name, fare_conditions, COUNT(*) FROM tickets t
+    INNER JOIN bookings b
+    ON t.book_ref=b.book_ref
+    INNER JOIN ticket_flights tf
+    ON t.ticket_no=tf.ticket_no
+    WHERE passenger_name = 'ALEKSANDR IVANOV'
+    GROUP BY fare_conditions, passenger_name;
+
+
+
+
 	
