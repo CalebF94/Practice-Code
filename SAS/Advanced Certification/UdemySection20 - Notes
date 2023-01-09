@@ -1,0 +1,109 @@
+/* 
+Section 20: PROC FCMP: Functions and Subroutines
+
+	Lecture 136: Create and use user-defined functions with PROC FCMP
+	Lecture 137: Create and Use subroutines with PROC FCMP
+
+*/
+
+%LET home=/home/u45038867/Udemy-AdvancedSAS/Data;
+
+/*
+Lecture 136: Create and Use User-defined Functions with PROC FCMP
+
+FCMP enables you to create, test, and store user-defined functions, CALL routines and 
+subroutines.
+
+General Format:
+	PROC FCMP OUTLIB=libref.data-set.package;
+		Function function-name(arg1, ..., argn);
+		programming statements;
+		return;
+		ENDSUB;
+	QUIT;
+*/
+
+PROC FCMP OUTLIB=work.functions.func;
+	*work is the library, functions is the dataset, func is the package;
+	
+	FUNCTION days_diff(start, end);*days_diff is the name of the function;
+		day_num = end-start;
+		RETURN(day_num);
+	ENDSUB;*Closes the days_diff function statement;
+
+/*
+OPTIONS CMPLIB= libref.data-set; needs to be specify the location of the stored function
+with a two-level name. This location must match the first two levels of the name given
+in the FCMP procedure's OUTLIB= option
+*/
+
+OPTIONS CMPLIB=(work.functions);
+
+PROC IMPORT datafile="&home/Patient_HD.xlsx"
+	dbms=xlsx
+	out=pd
+	replace;
+RUN;
+
+
+DATA PD_F;
+	SET PD;
+	HS = days_diff(start_date, end_date);*calling the user defined function;
+RUN;
+
+
+
+/*
+Lecture 137: Create and Use subroutines with PROC FCMP
+
+One limitation of functions is that only one value can be returned. SUbroutines can 
+return or update multiple values.
+
+Subroutines work similarly to functions.
+
+OUTARGS statement specifies the parameters that the subroutine returns
+ENDSUB ends the definition of the subroutine
+
+*/
+
+
+*This subroutine finds the area and circumference of a cirlce with the given radius;
+PROC FCMP OUTLIB=work.functions.subR;
+	SUBROUTINE circle(radius, area, circum);
+		OUTARGS area, circum;*These values will be returned by the subroutine;
+		area = 3.14*radius**2;
+		circum = 3.14*2*radius;
+	ENDSUB;
+QUIT;
+
+
+*Now we can call the subroutine in a similar manner to functions. Again we need to specify
+the cmplib= option. 
+
+One Difference is that variables that are returned in the OUTARGS statement must be 
+initialized before the routine can be called;
+OPTIONS CMPLIB=(work.functions);
+DATA example;
+	
+	*First we initialize the OUTARG values;
+	area=.;
+	circum=.;
+
+	*Now we loop through circles with differing radius(i);
+	DO i=1 to 10;
+		radius=i;
+		CALL circle(radius, area, circum);*calling the subroutine;
+		OUTPUT;
+	END;
+RUN;
+
+PROC PRINT data=example;
+	VAR radius area circum;
+RUN;
+
+
+
+
+
+
+
