@@ -1,0 +1,38 @@
+/* 
+Section 20: Coding Review
+
+	Data:
+		chara_data.xlsx
+		
+	Instructions:
+		1) create a function to extract the last name from full name values
+		2) use the function to apply to var full_name in chara_Data.xlsx to create a 
+		   variable containing last name information
+
+*/
+
+%LET home=/home/u45038867/Udemy-AdvancedSAS/Data;
+
+PROC FCMP outlib=work.functions.f_name;
+	function last_name(full_name $) $15;
+		first_name = SCAN(full_name, 1);
+		RETURN(first_name);
+	ENDSUB;
+RUN;
+
+PROC IMPORT datafile="&home/Chara_data.xlsx"
+	dbms=xlsx
+	out=chara
+	replace;
+RUN;
+
+
+OPTIONS CMPLIB=(work.functions);
+
+DATA chara1;
+	set chara;
+	f_name=last_name(full_name);
+RUN;
+
+PROC PRINT data=chara1;
+RUN;
