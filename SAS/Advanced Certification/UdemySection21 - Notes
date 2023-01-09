@@ -1,0 +1,106 @@
+/* 
+Section 21: Compare Techniques to eliminate duplicates
+
+	Lecture 140: Eliminate Duplicates using Data Step
+	Lecture 141: Eliminate Duplicates using PROC SORT
+	Lecture 142: Eliminate Duplicates using PROC SQL
+*/
+
+/*
+Lecture 140: Eliminate Duplicates using Data Step
+
+Use first./last. variables to identify observations as the first, last, or neither the 
+first nor last time that a value occurs
+*/
+
+DATA d1;
+	INPUT ID Count;
+	DATALINES;
+101 1
+102 1
+103 1
+104 1
+104 2
+105 1
+105 2
+105 3
+;
+RUN;
+
+PROC SORT data=d1;
+	by id;
+RUN;
+
+DATA d2;
+	set d1;
+	by id;
+	
+	*Unique ids will have a first_id and last_id equal to 1;
+	first_id = first.id;*returns 1 if first obs in by group;
+	last_id = last.id;*returns 1 if last obs in by group;
+RUN;
+
+PROC PRINT data=d2;
+RUN;
+
+*Use the values of first_id and last_id to output duplicates to a SAS data set;
+DATA unique_id dups;
+	SET d2;
+	by id;
+	if first_id=1 and last_id = 1 then output unique_id;
+	else output dups;
+RUN;
+
+
+/*
+Lecture 141: Eliminate Duplicates using PROC SORT
+
+Use the NODUPKEY option to delete observations with duplicate BY values;
+
+NODUPREC option delete duplicate observations(all variable values are repeated)
+
+DUPOUT= option with NODUPKEY or NODUPREC will output duplicates to the specified SAS data
+set
+*/
+
+
+*Deletes observations where the id variable is duplcated. The first observation for
+each id is kept
+
+out= specifies the outputted dataset. d1 won't be modified in this case;
+PROC SORT data=d1 out=d1_k nodupkey;
+	BY id;
+RUN;
+
+
+
+
+DATA d1;
+	INPUT ID Count;
+	DATALINES;
+101 1
+102 1
+103 1
+104 1
+104 2
+105 1
+105 2
+105 3
+;
+RUN;
+
+*Deletes observations if all variables are duplicated from a previous row;
+*The duplicates will be stored in the dups dataset;
+PROC SORT data=d1 NODUPKEY dupout=dups;
+	BY id;
+RUN;
+
+
+
+
+/*
+Lecture 142: Eliminate Duplicates using PROC SQL
+
+Use the Distinct keyword
+*/
+
