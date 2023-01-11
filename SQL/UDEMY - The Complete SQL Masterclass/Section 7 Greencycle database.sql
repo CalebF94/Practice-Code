@@ -72,3 +72,81 @@ ORDER BY c.first_name;
 
 
 
+/*
+CHALLENGE: Subquery in the FROM Clause
+
+-- What is the average total amount spent per day (average daily revenue)
+*/
+SELECT ROUND(AVG(daily_total), 2) as avg_daily_total
+FROM (SELECT 
+	  	DATE(payment_date), 
+		SUM(amount) as daily_total
+	  FROM payment
+	  GROUP BY DATE(payment_date)) as daily_rev;
+
+
+/*
+CHALLENGE: Subquery in the SELECT Clause
+
+-- Show all the payments together with how much the payment amount is below
+-- the maximum payment amount
+*/
+SELECT 
+	payment_id, 
+	amount, 
+	(SELECT MAX(amount) FROM payment),
+	(SELECT MAX(amount) FROM payment)-amount as difference
+FROM payment;
+
+
+/*
+CHALLENGE: CORRELATED SUBQUERY IN WHERE
+
+-- Show only those payments that have the highest amount per customer
+*/
+SELECT 
+	customer_id,
+	payment_id,
+	amount
+FROM payment as p1
+WHERE p1.amount = (SELECT MAX(amount)
+				   FROM payment as p2
+				   WHERE p1.customer_id = p2.customer_id)
+ORDER BY p1.customer_id;
+
+
+-- Show only those movie titles, their associated film_id and replacement_cost with
+-- the lowest replacement_costs for each rating category - also show the rating
+
+SELECT 
+	title,
+	film_id, 
+	replacement_cost,
+	rating
+FROM
+	film as f1
+WHERE f1.replacement_cost = (SELECT MIN(replacement_cost)
+							 FROM film as f2
+							 WHERE f1.rating = f2.rating
+							 )
+ORDER BY rating;
+
+
+
+
+-- SHow only movie titles , film id and the length that have the highest length in each
+-- rating category
+SELECT 
+	title,
+	film_id, 
+	length,
+	rating
+FROM
+	film as f1
+WHERE f1.length = (SELECT MAX(length)
+							 FROM film as f2
+							 WHERE f1.rating = f2.rating
+							 )
+ORDER BY rating;
+
+
