@@ -150,3 +150,79 @@ WHERE f1.length = (SELECT MAX(length)
 ORDER BY rating;
 
 
+/*
+Lecture 140 Example: Correlated subquery in SELECT
+
+Show the maximum for every customer
+*/
+SELECT 
+	*, (SELECT MAX(amount)
+	    FROM payment as p2
+	    WHERE p1.customer_id = p2.customer_id
+	   )
+FROM payment as P1
+ORDER BY customer_id;
+
+
+/*
+MORE CHALLENGES: Correlated Subqueries #1
+
+Show all payments plus the total amount for every customer as well
+as the number of payments of each customer
+*/
+SELECT 
+	*, 
+	(SELECT SUM(amount) 
+	 FROM payment p2 
+	 WHERE p1.customer_id = p2.customer_id) as sum_amount,
+	(SELECT COUNT(*)
+	 FROM payment p2
+	WHERE p1.customer_id = p2.customer_id) as Num_payments
+FROM payment p1
+ORDER BY customer_id;
+
+
+/*
+MORE CHALLENGES: Correlated Subqueries #2
+
+Show only those films with the highest replacement costs in their rating
+category plus show the average replacement cost in their rating category.
+*/
+SELECT
+	film_id,
+	title,
+	rating,
+	replacement_cost,
+	 (SELECT ROUND(AVG(replacement_cost),2)
+	 FROM film as f2
+	 WHERE f1.rating = f2.rating) as avg_replacement 
+FROM 
+	film as f1
+WHERE f1.replacement_cost = (SELECT MAX(replacement_cost)
+							 FROM film as f3
+							 WHERE f1.rating = f3.rating)
+ORDER BY rating;
+
+
+
+/*
+MORE CHALLENGES: Correlated Subqueries #3
+
+Show only those payments with the highest payment for each customer's first name
+	- including the payment_id of that payment
+*/
+SELECT 
+	c.first_name, p.payment_id, p.amount
+FROM payment as p LEFT JOIN customer as c
+	ON p.customer_id = c.customer_id
+WHERE amount = (SELECT MAX(amount)
+			    FROM payment p2 LEFT JOIN customer as c2
+					ON p2.customer_id = c2.customer_id
+			    WHERE c.first_name = c2.first_name)
+ORDER BY first_name;
+
+
+
+
+
+
