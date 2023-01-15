@@ -144,7 +144,7 @@ FROM
 	address as a 
 	LEFT JOIN customer as c
 		ON a.address_id = c.address_id
-WHERE c.customer_id is null
+WHERE c.customer_id is null;
 
 
 /*
@@ -270,4 +270,114 @@ GROUP BY DOW
 ORDER BY DOW;
 
 
+/*
+Question 11
+Topic: Correlated Subquery
+Task: 
+	- Create a list of movies with length and replacement cost that are longer than
+	  the average length in each replacement cost group
+	- Which two movies are the shortest in that list and how long are they?
 
+Notes: 
+	- The question is poorly worded. It should say which movies are longer than the average of all
+	  movies with the same replacement cost. Do not use the groups that were used in previous questions
+
+Result: CORRECT (Celebrity Horn and Seattle Expectations 110 minutes)
+*/
+SELECT 
+	title,
+	length,
+	replacement_cost
+FROM film as f1
+WHERE 
+	f1.length > (SELECT AVG(length)
+				 FROM film as f2
+				 WHERE f1.replacement_cost = f2.replacement_cost
+			)
+ORDER BY length;
+
+
+/*
+Question 12
+Topic: Uncorrelated Subquery
+Task: 
+	- Create a list that shows how much the average customer spent in total grouped by the different districts
+	- Which district has the highest average customer life-time value
+
+Notes: 
+	- The subquery returns a table that has customer totals along with customer_id and district
+	
+Result: CORRECT (Saint Denis 216.54)
+*/
+
+SELECT 
+	district,
+	AVG(amount) as dist_avg,
+	COUNT(*)
+FROM
+	(SELECT
+		SUM(p.amount) as amount,
+		c.customer_id,
+		a.district
+	FROM 
+		payment as p 
+		LEFT JOIN customer as c
+			ON p.customer_id = c.customer_id
+		LEFT JOIN address as a
+			ON a.address_id = c.address_id
+	GROUP BY c.customer_id, a.district) as cust_tot
+GROUP BY district
+ORDER BY dist_avg DESC;
+
+
+/*
+Question 13
+Topic: Uncorrelated Subquery
+Task: 
+	- Create a list showing all payments, payment_ids, and film category plus the total amount that was made in this category.
+		- Order results ascendingly by the category (name) and payment_id
+	- What is the total revenue of the category 'Action' and what is the lowest payment_id in the action category
+
+Notes: 
+	- The key is to use a subquery that creates a table that sums amounts by category and then inner join that table to the 
+	  payment table that also has the other required information joined to it.
+	
+Result: 
+*/
+SELECT 
+	p1.payment_id,
+	p1.amount,
+	f1.title,
+	c1.name,
+	cat_total.category_total
+FROM
+	payment as p1
+	LEFT JOIN rental as r1
+		ON p1.rental_id = r1.rental_id
+	LEFT JOIN inventory as i1
+		ON r1.inventory_id = i1.inventory_id
+	LEFT JOIN film as f1
+		ON i1.film_id = f1.film_id
+	LEFT JOIN film_category as fc1
+		ON f1.film_id = fc1.film_id
+	LEFT JOIN category as c1
+	 	ON fc1.category_id = c1.category_id
+INNER JOIN (SELECT 
+				c2.name,
+	 			SUM(amount) as category_total
+	 		FROM 
+	 			payment as p2  
+				LEFT JOIN rental as r2
+					ON p2.rental_id = r2.rental_id
+				LEFT JOIN inventory as i2
+					ON r2.inventory_id = i2.inventory_id
+				LEFT JOIN film as f2
+					ON i2.film_id = f2.film_id
+				LEFT JOIN film_category as fc2
+					ON f2.film_id = fc2.film_id
+				LEFT JOIN category as c2
+					ON fc2.category_id = c2.category_id
+		GROUP BY c2.name) as cat_total-- end subquery
+	ON c1.name = cat_total.name
+ORDER BY
+	c1.name, p1.payment_id
