@@ -68,5 +68,65 @@ ALTER TABLE director
 SELECT * FROM directors
 
 
+/*
+CHALLENGE: CHECK
 
+-- Create a table called songs with the following columns
+	- song_id (primary key)
+	- song_name varchar(30)
+	- genre varchar(30)
+	- price numeric(4,2)
+	- release_date date
 
+1) During creation add the DEFAULT 'Not defined' to the genre
+2) Add the not null constraint to the song_name column
+3) Add the constraint with default name to ensure the price is at least 1.99
+4) Add the constraint date_check to ensure the realease date is between today and 01-01-1950
+5) Try to insert a row where price is 0.99
+6) Modify the constraint to be able to have 0.99 allowed as the lowest possible price
+7) Try inserting row again
+*/
+
+	-- Creating Table, steps 1-4
+	CREATE TABLE songs(
+		song_id SERIAL PRIMARY KEY,
+		song_name VARCHAR(30) NOT NULL, -- step 2
+		genre VARCHAR(30) DEFAULT 'Not defined', -- step 1
+		price NUMERIC(4,2) CHECK(price > 1.99), --step 3
+		release_date DATE CONSTRAINT date_check CHECK(release_date BETWEEN '01-01-1950' AND CURRENT_DATE) --step 4
+	);
+
+	-- step 5: Inserting row that violates a constraint, should get an error
+	-- Note that the first row is valid, but neither gets inserted
+	INSERT INTO songs 
+		(song_id, song_name, price, release_date)
+		VALUES 
+			(4, 'SQL song', 3.99, '1999-01-07'),
+			(5, 'SQL song', 0.99, '2022-01-07');
+	
+	--querying the table. Should still be empty
+	SELECT * FROM songs;
+	
+	--STEP 6: Modifying constraint on values
+		-- First drop the constraint
+	ALTER TABLE songs
+		DROP CONSTRAINT songs_price_check;
+		
+		--Then recreate with new condition
+	ALTER TABLE songs
+		ADD CHECK (price >=0.99);
+	
+	
+	-- step 7: Inserting same rows again
+	INSERT INTO songs 
+		(song_id, song_name, price, release_date)
+		VALUES 
+			(4, 'SQL song', 3.99, '1999-01-07'),
+			(5, 'SQL song', 0.99, '2022-01-07');
+	
+	--querying table with rows added
+	SELECT * FROM songs;
+	
+	
+	
+	
