@@ -131,7 +131,26 @@ LECTURE: CREATE MATERIALIZED VIEW
 	--view updated vie
 	SELECT * from mv_films_category WHERE title='SATURN NAME';
 	
-	
+/*
+LECTURE 192: Import and Export
+*/
+	CREATE TABLE sales (
+		transaction_id SERIAL PRIMARY KEY,
+		customer_id INT,
+		payment_type VARCHAR(20),
+		creditcard_no VARCHAR(20),
+		cost DECIMAL(5, 2),
+		quantity INT,
+		price DECIMAL (5, 2));
+
+	-- data was imported using the I/O interface by right clicking
+	-- on the table name
+	SELECT * FROM sales;
+
+
+
+
+
 	
 	
 	
