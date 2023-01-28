@@ -41,6 +41,85 @@ SELECT
 FROM payment;
 
 
+/*
+LECTURE 200: RANK()
+*/
+--RANK() Example
+SELECT 
+	f.title,
+	c.name,
+	f.length,
+	RANK() OVER(ORDER BY f.length desc)
+FROM 
+	film as f
+	LEFT JOIN film_category as fc
+		ON f.film_id = fc.film_id
+	LEFT JOIN category as c
+		ON fc.category_id = c.category_id;
+
+--DENSE_RANK() example
+SELECT 
+	f.title,
+	c.name,
+	f.length,
+	DENSE_RANK() OVER(ORDER BY f.length desc)
+FROM 
+	film as f
+	LEFT JOIN film_category as fc
+		ON f.film_id = fc.film_id
+	LEFT JOIN category as c
+		ON fc.category_id = c.category_id;
+
+
+--DENSE_RANK() and PARTITION BY
+SELECT 
+	f.title,
+	c.name,
+	f.length,
+	DENSE_RANK() OVER(PARTITION BY c.name
+					  ORDER BY f.length desc)
+FROM 
+	film as f
+	LEFT JOIN film_category as fc
+		ON f.film_id = fc.film_id
+	LEFT JOIN category as c
+		ON fc.category_id = c.category_id;
+
+--Filting based on rank functions
+SELECT * 
+FROM
+	(SELECT 
+		f.title,
+		c.name,
+		f.length,
+		DENSE_RANK() OVER(PARTITION BY c.name
+					  		ORDER BY f.length desc) as rnk
+	FROM 
+		film as f
+		LEFT JOIN film_category as fc
+			ON f.film_id = fc.film_id
+		LEFT JOIN category as c
+			ON fc.category_id = c.category_id) as r
+WHERE rnk = 1;
+
+
+/*
+LECTURE 203: FIRST_VALUE
+*/
+-- This is giving the first value for each country and the difference that the second and
+--    third customers have compared to the first within each country
+SELECT 
+	cl.name,
+	cl.country,
+	COUNT(*),
+	FIRST_VALUE(COUNT(*)) OVER(PARTITION BY cl.country ORDER BY COUNT(*) DESC) as f_value,
+	FIRST_VALUE(COUNT(*)) OVER(PARTITION BY cl.country ORDER BY COUNT(*) DESC)-COUNT(*)  as diff
+FROM 
+	payment as p 
+	LEFT JOIN customer_list as cl
+		ON p.customer_id = cl.id
+GROUP BY name, country
+
 
 
 
