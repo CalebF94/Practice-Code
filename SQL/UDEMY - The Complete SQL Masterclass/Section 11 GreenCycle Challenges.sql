@@ -43,6 +43,50 @@ FROM payment
 ORDER BY payment_id
 
 
+/*
+CHALLENGE: RANK() and DENSE_RANK()
+
+Write a query that returns the customers name, the country and how many payments they have
+
+Afterwards create a ranking of the top customers with most sales for each country. Filter
+	results to only the top 3 customers per country
+*/
+
+SELECT * 
+FROM
+	(SELECT 
+		cl.name,
+		cl.country,
+		COUNT(*),
+		DENSE_RANK() OVER(PARTITION BY cl.country ORDER BY COUNT(*)) as rnk
+	FROM 
+		payment as p 
+		LEFT JOIN customer_list as cl
+			ON p.customer_id = cl.id
+	GROUP BY name, country) as sub
+WHERE 
+	rnk <= 3
+ORDER BY country, rnk;
+
+/*
+CHALLENGE: LEAD() and LAG()
+
+-- Write a query that returns the revenue of the day and the revenue of the previous day
+-- Afterwards calculate the %age growth compared to the previous day
+*/
+SELECT 
+	DATE(payment_date) as day,
+	SUM(amount) current_total,
+	LAG(SUM(amount)) OVER(ORDER BY DATE(payment_date)) as previous_total,
+	ROUND(100*(SUM(amount)-LAG(SUM(amount)) OVER(ORDER BY DATE(payment_date))) / LAG(SUM(amount)) OVER(ORDER BY DATE(payment_date)), 2) as perc_change
+FROM payment
+GROUP BY day
+ORDER BY day;
+
+
+
+
+
 
 
 
