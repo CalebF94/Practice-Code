@@ -68,6 +68,23 @@ GROUP BY
 	CUBE(1,2,3)
 ORDER BY 1,2,3;
 
+/*
+CHALLENGE: SELF JOINS
+
+-- Find all pairs of films with the same length
+*/
+SELECT
+	f1.title as title1,
+	f2.title as title2,
+	f1.length
+FROM 
+	film as f1
+	LEFT JOIN film as f2
+		ON f1.length = f2.length AND f1.title != f2.title
+ORDER BY f1.length DESC;
+
+
+
 
 
 
