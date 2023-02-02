@@ -148,6 +148,137 @@ TASK 4.4:
 	WHERE position_title = 'SQL Analyst';
 
 
+/*
+Task 5.1
+-- write a query that adds a column called manager that contains first_name and last_name
+-- secondly, add a column called is_active with false if the employee has left the company
+   already, otherwise the value is 'true'
+*/
+SELECT 
+	e1.*,
+	e2.first_name ||' '|| e2.last_name as manager,
+	CASE WHEN e1.end_date IS NULL THEN 'true' ELSE 'false' END as is_active
+FROM 
+	employees as e1
+	LEFT JOIN employees as e2
+		ON e1.manager_id = e2.emp_id;
+
+
+/*
+Task 5.2
+-- Create a view from the previous query
+*/
+	DROP VIEW v_employees_info;
+
+	CREATE VIEW v_employees_info AS
+		SELECT 
+			e1.*,
+			e2.first_name ||' '|| e2.last_name as manager,
+			CASE WHEN e1.end_date IS NULL THEN 'true' ELSE 'false' END as is_active
+		FROM 
+			employees as e1
+			LEFT JOIN employees as e2
+				ON e1.manager_id = e2.emp_id;
+
+	SELECT * FROM v_employees_info;
+	
+	
+/*
+Task 6
+-- Write a query that returns the average salaries for each positions with appropriate roundings
+*/
+	SELECT 
+		position_title,
+		ROUND(AVG(salary), 2) as avg_sal
+	FROM employees
+	GROUP BY position_title;
+	
+		
+/*
+Task 7
+-- Write a query that returns the average salaries per division
+*/
+	SELECT 
+		d.division,
+		ROUND(AVG(salary), 2) as avg_salary
+	FROM 
+		employees as e 
+		LEFT JOIN departments as d
+			ON e.department_id = d.department_id
+	GROUP BY d.division;
+
+
+/*
+Task 8.1
+-- Write a quere that returns emp_id, first_name, last_name, position_title, salary
+-- add a column that returns the aveg salary for every job position
+*/
+	SELECT 
+		emp_id,
+		first_name,
+		last_name,
+		position_title,
+		salary,
+		ROUND(AVG(salary) OVER(PARTITION BY position_title), 2)
+	FROM 
+		v_employees_info
+	ORDER BY emp_id;
+
+
+
+/*
+Task 8.2
+-- How many people earn less than their avg_position_salary
+*/
+
+SELECT 
+	*
+FROM
+	(SELECT 
+			emp_id,
+			first_name,
+			last_name,
+			position_title,
+			salary,
+			ROUND(AVG(salary) OVER(PARTITION BY position_title), 2) as pos_avg
+		FROM 
+			v_employees_info
+		ORDER BY emp_id) as q1
+WHERE
+	pos_avg > salary;
+
+
+
+/*
+Task 9
+-- Write a query that returns a running total of the salary development 
+   ordered by start_date
+*/
+SELECT
+	emp_id,
+	salary,
+	start_date,
+	SUM(salary) OVER(ORDER BY start_date)
+FROM 
+	employees;
+
+
+/*
+Task 10
+-- Create the same running total but now also consider the fact that people were
+   leaving the company
+*/
+SELECT
+	emp_id,
+	start_date
+	salary,
+	
+	SELECT 
+	 	*,
+	 	CASE WHEN end_date IS NULL THEN salary ELSE -salary END as contribution
+	FROM employees
+	ORDER BY start_date
+
 
 
 
