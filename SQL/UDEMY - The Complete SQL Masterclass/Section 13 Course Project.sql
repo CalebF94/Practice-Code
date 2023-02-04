@@ -6,7 +6,8 @@ Section 13: Course Project
 Task 1
 */
 
-	DROP TABLE employees;
+	DROP TABLE employees CASCADE;
+	
 	-- Task 1.1
 	-- Create a table called employees
 		CREATE TABLE IF NOT EXISTS employees(
@@ -210,7 +211,7 @@ Task 7
 
 /*
 Task 8.1
--- Write a quere that returns emp_id, first_name, last_name, position_title, salary
+-- Write a query that returns emp_id, first_name, last_name, position_title, salary
 -- add a column that returns the aveg salary for every job position
 */
 	SELECT 
@@ -268,17 +269,186 @@ Task 10
 -- Create the same running total but now also consider the fact that people were
    leaving the company
 */
+
+-- Table that has the salary decrease when the end_date is null
+SELECT 
+	*,
+	SUM(salary) OVER(ORDER BY date)
+FROM
+	((SELECT 
+		first_name, last_name, -salary as salary, end_date as date
+	FROM 
+		employees 
+	WHERE 
+		end_date is NOT NULL)
+	UNION
+	--Table that has the salary increase when the end_date is null
+	(SELECT 
+		first_name, last_name, salary, start_date as date
+	FROM 
+		employees 
+	WHERE 
+		end_date is NOT NULL)
+
+	UNION	
+	--Table that has the salary increase for employees with NULL end_date
+	(SELECT 
+		first_name, last_name, salary, start_date as date
+	FROM 
+		employees 
+	WHERE 
+		end_date IS NULL)) as union_1
+ORDER BY date
+
+/*
+TASK 11.1
+	-- Write a query that outputs only the top earner per position_title including first name
+	   position_title, and salary
+	   
+TASK 11.2
+	--Add the average salary per position title
+*/
+
+SELECT
+	first_name,
+	position_title,
+	salary,
+	avg_salary
+FROM
+	(SELECT
+		first_name,
+		position_title,
+		salary,
+		ROUND(AVG(salary) OVER(PARTITION BY position_title), 2) as avg_salary,
+		MAX(salary) OVER(PARTITION BY position_title) as max_salary
+	FROM employees) as sub
+WHERE
+	salary = max_salary
+ORDER BY
+	salary DESC;
+
+/*
+TASK 11.3
+	-- Remove employees from output of previous query that have the same salary as 
+	   the average of their position_title
+*/
+SELECT
+	first_name,
+	position_title,
+	salary,
+	avg_salary
+FROM
+	(SELECT
+		first_name,
+		position_title,
+		salary,
+		ROUND(AVG(salary) OVER(PARTITION BY position_title), 2) as avg_salary,
+		MAX(salary) OVER(PARTITION BY position_title) as max_salary
+	FROM employees) as sub
+WHERE
+	salary = max_salary AND
+	salary != avg_salary
+ORDER BY
+	salary DESC;
+
+
+
+/*
+TASK 12
+	-- Write a query that returns: 
+		-- all meaningful aggregations of sum of salary, num of employees, avg salary
+		-- grouped by all meaningful combinations of division, department, position_title
+*/
+SELECT 
+	division, department, position_title,
+	SUM(salary) as total_salary,
+	COUNT(emp_id) as employee_count,
+	ROUND(AVG(salary), 2) as avg_salary
+FROM 
+	employees as e
+	LEFT JOIN departments as d
+		ON e.department_id = d.department_id
+GROUP BY
+	ROLLUP(division, department, position_title)
+ORDER BY 
+	division, department, position_title;
+	
+/*
+TASK 13:
+	-- Write a query that returns all employees including title, dept, and salary 
+	   and the rank of that salary partitioned by department
+	-- The highest salary per division should have a rank 1
+*/
+
+SELECT 
+	emp_id,
+	position_title,
+	department, 
+	salary,
+	RANK() OVER(PARTITION BY department ORDER BY salary DESC)
+FROM
+	employees as e
+	LEFT JOIN departments as d
+		ON e.department_id = d.department_id
+ORDER BY department
+
+
+/*
+TASK 14
+	-- write a query that returns only the top earner of each department including
+	   their emp_id, position_title, department, and their salary
+*/
+-- using subquery
 SELECT
 	emp_id,
-	start_date
-	salary,
-	
-	SELECT 
-	 	*,
-	 	CASE WHEN end_date IS NULL THEN salary ELSE -salary END as contribution
-	FROM employees
-	ORDER BY start_date
+	position_title,
+	department,
+	salary
+FROM 
+	employees as e
+	LEFT JOIN departments as d
+		ON e.department_id = d.department_id
+WHERE
+	salary = (SELECT max(salary)
+			  FROM employees as e2 LEFT JOIN departments as d2 
+			  	ON e2.department_id = d2.department_id
+			  WHERE d2.department_id = d.department_id)
+ORDER BY salary;
+
+-- using window functions
+SELECT
+	emp_id, position_title, department, salary
+FROM
+	(SELECT
+		emp_id,
+		position_title,
+		department,
+		salary,
+		MAX(salary) OVER(PARTITION BY department) as max
+	FROM 
+		employees as e
+		LEFT JOIN departments as d
+			ON e.department_id = d.department_id) as sub
+WHERE
+	salary = max
+ORDER BY salary;
 
 
-
+-- USing Rank
+SELECT * 
+FROM
+	(SELECT
+		emp_id,
+		position_title,
+		department,
+		salary,
+		RANK() OVER(PARTITION BY department ORDER BY salary DESC) as rank
+	FROM 
+		employees as e
+		LEFT JOIN departments as d
+			ON e.department_id = d.department_id) as sub
+WHERE
+	rank =1
+ORDER BY 
+	salary DESC;
 
