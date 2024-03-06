@@ -1,5 +1,3 @@
-
-
 from bokeh.io import output_file
 from bokeh.plotting import figure, show
 from bokeh.models import ColumnDataSource, CDSView, GroupFilter, TabPanel, Tabs
