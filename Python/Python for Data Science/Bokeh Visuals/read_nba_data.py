@@ -37,3 +37,54 @@ three_takers = three_takers[three_takers['play3PA']>=100]
 three_takers['pct3PM'] = three_takers['play3PM']/three_takers['play3PA']
 
 
+# Philly data isolated
+phi_gm_stats= (team_stats[(team_stats['teamAbbr']=='PHI') & (team_stats['seasTyp']=='Regular')]
+               .loc[:,['gmDate',
+                      'teamPTS',
+                      'teamTRB',
+                      'teamAST',
+                      'teamTO',
+                      'opptPTS']
+                      ]
+                .sort_values('gmDate'))
+
+phi_gm_stats['game_num'] = range(1, len(phi_gm_stats)+1)
+
+#Add a win loss column
+win_loss = []
+for _, row in phi_gm_stats.iterrows():
+
+    #If sixers score more than their opponents then W
+    if row['teamPTS'] > row['opptPTS']:
+        win_loss.append('W')
+    else:
+        win_loss.append('L')
+
+phi_gm_stats['winLoss'] = win_loss
+
+
+#Isolate relevant data for 76ers Scatter Plots
+phi_gm_stats_2 = (team_stats[(team_stats['teamAbbr'] == 'PHI') &
+                             (team_stats['seasTyp'] == 'Regular')]
+                 .loc[:, ['gmDate',
+                          'team2P%',
+                          'team3P%',
+                          'teamPTS',
+                          'opptPTS']]
+                 .sort_values('gmDate'))
+
+# Add game number
+phi_gm_stats_2['game_num'] = range(1, len(phi_gm_stats_2) + 1)
+
+# Derive a win_loss column
+win_loss = []
+for _, row in phi_gm_stats_2.iterrows():
+
+    # If the 76ers score more points, it's a win
+    if row['teamPTS'] > row['opptPTS']:
+        win_loss.append('W')
+    else:
+        win_loss.append('L')
+
+# Add the win_loss data to the DataFrame
+phi_gm_stats_2['winLoss'] = win_loss
